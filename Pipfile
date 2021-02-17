@@ -4,12 +4,16 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+ipywidgets = "*"
+jupyterlab-widgets = "*"
 
 [packages]
 transformers = "*"
 matplotlib = "*"
 seaborn = "*"
 jupyterlab = "*"
+fire = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.8"
