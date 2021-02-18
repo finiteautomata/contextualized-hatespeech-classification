@@ -14,6 +14,7 @@ seaborn = "*"
 jupyterlab = "*"
 fire = "*"
 sklearn = "*"
+datasets = "*"
 
 [requires]
 python_version = "3.8"
