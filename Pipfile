@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 ipywidgets = "*"
 jupyterlab-widgets = "*"
+ipdb = "*"
 
 [packages]
 transformers = "*"
