@@ -16,6 +16,7 @@ jupyterlab = "*"
 fire = "*"
 sklearn = "*"
 datasets = "*"
+hatespeech-classification = {editable = true, path = "."}
 
 [requires]
 python_version = "3.8"

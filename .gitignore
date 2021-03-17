@@ -132,3 +132,4 @@ config/*
 dumps/*
 **/results/*
 models/*
+.vscode/*
