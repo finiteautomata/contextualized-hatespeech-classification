@@ -2,11 +2,8 @@ import json
 import fire
 from sklearn.model_selection import train_test_split
 from tqdm.auto import tqdm
+from hatedetection import hate_categories
 
-categories = [
-    "WOMEN", "LGBTI", "RACISM", "CLASS",
-    "POLITICS", "DISABLED", "APPEARANCE", "CRIMINAL",
-]
 
 def process_comment(raw_comment):
     """
@@ -14,15 +11,15 @@ def process_comment(raw_comment):
     """
     ret = {
         "text": raw_comment["text"],
-        "is_hateful": int(len(raw_comment['HATE']) >= 2)
+        "HATEFUL": int(len(raw_comment['HATE']) >= 2)
     }
-    for cat in categories + ["calls"]:
+    for cat in hate_categories + ["CALLS"]:
         ret[cat] = 0
 
-    if ret["is_hateful"]:
-        ret["calls"] = int(len(raw_comment['CALLS']) >= 2)
+    if ret["HATEFUL"]:
+        ret["CALLS"] = int(len(raw_comment['CALLS']) >= 2)
 
-        for category in categories:
+        for category in hate_categories:
             ret[category] = int(len(raw_comment[category]) > 0)
 
     return ret
