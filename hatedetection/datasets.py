@@ -11,8 +11,8 @@ from .preprocessing import preprocess_tweet
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
 
-train_path = os.path.join(data_dir, "train.json")
-test_path = os.path.join(data_dir, "test.json")
+_train_path = os.path.join(data_dir, "train.json")
+_test_path = os.path.join(data_dir, "test.json")
 
 
 def serialize(article, comment):
@@ -25,7 +25,7 @@ def serialize(article, comment):
 
 
 
-def load_datasets(train_path=train_path, test_path=test_path):
+def load_datasets(train_path=None, test_path=None):
     """
     Load and return datasets
 
@@ -34,10 +34,13 @@ def load_datasets(train_path=train_path, test_path=test_path):
 
         train_dataset, dev_dataset, test_datasets: datasets.Dataset
     """
-    with open("../data/train.json") as f:
+    test_path = test_path or _test_path
+    train_path = train_path or _train_path
+
+    with open(train_path) as f:
         train_articles = json.load(f)
 
-    with open("../data/test.json") as f:
+    with open(test_path) as f:
         test_articles = json.load(f)
 
 
