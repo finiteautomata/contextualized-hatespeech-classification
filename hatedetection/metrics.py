@@ -1,11 +1,13 @@
 """
 Compute metrics during training
 """
+import torch
+from .categories import extended_hate_categories
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 def compute_hate_metrics(pred):
     """
-    Compute metrics for Trainer
+    Compute metrics for hatespeech classifier
     """
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
@@ -17,3 +19,28 @@ def compute_hate_metrics(pred):
         'precision': precision,
         'recall': recall
     }
+
+
+def compute_category_metrics(pred):
+    """
+    Compute metrics for hatespeech category classifier
+    """
+    labels = pred.label_ids
+    preds = torch.sigmoid(torch.Tensor(pred.predictions)).round()
+
+    ret = {
+    }
+    """
+    Calculo F1 por cada posición. Asumo que cada categoría está alineada correctamente en la i-ésima posición
+    """
+    f1s = []
+    for i, cat in enumerate(extended_hate_categories):
+        cat_labels, cat_preds = labels[:, i], preds[:, i]
+        precision, recall, f1, _ = precision_recall_fscore_support(cat_labels, cat_preds, average='macro')
+
+        f1s.append(f1)
+
+        ret[cat.lower()+"_f1"] = f1
+
+    ret["mean_f1"] = torch.Tensor(f1s).mean()
+    return ret
