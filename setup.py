@@ -9,6 +9,7 @@ setup(
     packages=find_packages(),
     test_suite="tests",
     install_requires=[
-        "transformers>=4.4.0",
+        "transformers==4.4.0",
+        "datasets==1.4.1"
     ]
 )
