@@ -18,7 +18,6 @@ python bin/train_hate_classifier.py --output_path models/bert-non-contextualized
 python bin/train_category_classifier.py --output_path models/bert-non-contextualized-hate-category-es/ --epochs 5
 
 # Train contextualized model
-python bin/train_hate_classifier.py --use_context --output_path models/
-bert-contextualized-hate-speech-es/ --epochs 10
+python bin/train_hate_classifier.py --use_context --output_path models/bert-contextualized-hate-speech-es/ --epochs 10
 python bin/train_category_classifier.py --use_context --output_path models/bert-contextualized-hate-category-es/ --epochs 5
 ```
