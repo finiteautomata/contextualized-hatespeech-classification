@@ -34,13 +34,19 @@ def compute_category_metrics(pred):
     Calculo F1 por cada posición. Asumo que cada categoría está alineada correctamente en la i-ésima posición
     """
     f1s = []
+    precs = []
+    recalls = []
     for i, cat in enumerate(extended_hate_categories):
         cat_labels, cat_preds = labels[:, i], preds[:, i]
         precision, recall, f1, _ = precision_recall_fscore_support(cat_labels, cat_preds, average='macro')
 
         f1s.append(f1)
+        precs.append(precision)
+        recalls.append(recall)
 
         ret[cat.lower()+"_f1"] = f1
 
     ret["mean_f1"] = torch.Tensor(f1s).mean()
+    ret["mean_precision"] = torch.Tensor(precs).mean()
+    ret["mean_recall"] = torch.Tensor(recalls).mean()
     return ret
