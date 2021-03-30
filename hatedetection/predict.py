@@ -41,3 +41,40 @@ def predict_category(model, tokenizer, sentence, context=None):
     ret = [cat for cat, out in list(zip(extended_hate_categories, output > 0)) if out]
 
     return ret
+
+def predict_hateful(model, tokenizer, sentence, context=None):
+    """
+    Predicts sentence is hateful
+
+
+    Arguments:
+    ----------
+
+    model: BertForSequenceMultiClassification
+
+    sentence: string
+        Hateful tweet to be categorized
+
+    context: string (Optional)
+
+
+    """
+    device = model.device
+
+    args = []
+
+
+    # If context, prepend it
+    if context:
+        args.append(context)
+    args.append(preprocess_tweet(sentence))
+
+    idx = tokenizer.encode(*args)
+    # Reshape to be (1, L) and send to model device
+    idx = torch.LongTensor(idx).view(1, -1).to(device)
+
+    # Get logits
+    output = model(idx)
+    hateful = bool(output.logits.argmax().item())
+
+    return hateful
