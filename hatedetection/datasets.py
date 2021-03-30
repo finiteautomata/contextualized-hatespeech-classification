@@ -62,6 +62,7 @@ def load_datasets(train_path=None, test_path=None):
         df["context"] = df["context"].apply(preprocess_tweet)
 
     features = Features({
+        'id': Value('uint64'),
         'context': Value('string'),
         'text': Value('string'),
         'HATEFUL': ClassLabel(num_classes=2, names=["Not Hateful", "Hateful"])
@@ -75,10 +76,12 @@ def load_datasets(train_path=None, test_path=None):
         features[cat] = ClassLabel(num_classes=2, names=["NO", "YES"])
 
     columns = [
+        "id",
         "context",
         "text",
         "HATEFUL"
     ] + extended_hate_categories
+
 
     train_dataset = Dataset.from_pandas(train_df[columns], features=features)
     dev_dataset = Dataset.from_pandas(dev_df[columns], features=features)

@@ -10,6 +10,7 @@ def process_comment(raw_comment):
     Process raw comment
     """
     ret = {
+        "id": raw_comment["id"],
         "text": raw_comment["text"],
         "HATEFUL": int(len(raw_comment['HATE']) >= 2)
     }
