@@ -27,12 +27,22 @@ def camel_to_human(s, lower=True):
     return ret
 
 def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
-    preprocess_hashtags=True, hashtag_token=None, demoji=True):
+    preprocess_hashtags=True, hashtag_token=None, demoji=True, shorten=3):
     """
     Basic preprocessing
+
+    Arguments:
+    ---------
+    shorten: int (default: 3)
+
+    Convert all occurrences of a character *shorten* or more times to just *shorten* times
     """
     text = user_regex.sub(user_token, text)
     text = url_regex.sub(url_token, text)
+
+    if shorten:
+        repeated_regex = re.compile(r"(.)"+ r"\1" * (shorten-1) + "+")
+        text = repeated_regex.sub(r"\1"*shorten, text)
 
 
     def process_hashtags(x):
