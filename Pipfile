@@ -20,6 +20,7 @@ sklearn = "*"
 datasets = "*"
 hatespeech-classification = {editable = true, path = "."}
 torch = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.8"

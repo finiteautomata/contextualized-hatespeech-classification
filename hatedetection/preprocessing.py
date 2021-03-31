@@ -2,14 +2,60 @@ import re
 
 user_regex = re.compile(r"@[a-zA-Z0-9_]{0,15}")
 url_regex = re.compile(
-    "((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|co|org|edu|gov|uk|net|ca|de|jp|fr|au|us|ru|ch|it|nl|se|no|es|mil|iq|io|ac|ly|sm){1}(?:\/[a-zA-Z0-9]{1,})*)"
+    r"((?<=[^a-zA-Z0-9])(?:https?\:\/\/|[a-zA-Z0-9]{1,}\.{1}|\b)(?:\w{1,}\.{1}){1,5}(?:com|co|org|edu|gov|uk|net|ca|de|jp|fr|au|us|ru|ch|it|nl|se|no|es|mil|iq|io|ac|ly|sm){1}(?:\/[a-zA-Z0-9]{1,})*)"
 )
 
-def preprocess_tweet(text):
+hashtag_regex = re.compile(r'\B#(\w*[a-zA-Z]+\w*)')
+start_of_camel = re.compile(r'([A-Z]+)')
+
+def camel_to_human(s, lower=True):
+    """
+    Converts camel case to 'human' case
+
+    Arguments:
+    ----------
+
+    lower: bool (default: False)
+        Convert output to lower
+    """
+
+    ret = start_of_camel.sub(r' \1', s).strip()
+
+    if lower:
+        ret = ret.lower()
+
+    return ret
+
+def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
+    preprocess_hashtags=True, hashtag_token=None, demoji=True):
     """
     Basic preprocessing
     """
-    text = user_regex.sub("usuario", text)
-    text = url_regex.sub("url", text)
+    text = user_regex.sub(user_token, text)
+    text = url_regex.sub(url_token, text)
+
+
+    def process_hashtags(x):
+        """
+        Hashtag preprocessing function
+
+        Take first group and decamelize
+        """
+
+
+        text = x.groups()[0]
+
+        text = camel_to_human(text)
+
+        if hashtag_token:
+            text = hashtag_token + " " + text
+
+        return text
+
+    if preprocess_hashtags:
+        text = hashtag_regex.sub(
+            process_hashtags,
+            text
+        )
 
     return text
