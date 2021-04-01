@@ -1,3 +1,4 @@
+import emoji
 import re
 
 user_regex = re.compile(r"@[a-zA-Z0-9_]{0,15}")
@@ -26,6 +27,16 @@ def camel_to_human(s, lower=True):
 
     return ret
 
+emoji_regex = re.compile(r"\|([^\|]+)\|")
+
+
+def convert_emoji_to_text(x):
+    """
+    """
+    return "[EMOJI]" + " ".join(x.groups()[0].split("_")) + "[EMOJI]"
+
+
+
 def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
     preprocess_hashtags=True, hashtag_token=None, demoji=True, shorten=3):
     """
@@ -44,6 +55,14 @@ def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
         repeated_regex = re.compile(r"(.)"+ r"\1" * (shorten-1) + "+")
         text = repeated_regex.sub(r"\1"*shorten, text)
 
+    if demoji:
+        text = emoji.demojize(text, language="es", delimiters=("|", "|"))
+
+
+        text = emoji_regex.sub(
+            convert_emoji_to_text,
+            text
+        )
 
     def process_hashtags(x):
         """
