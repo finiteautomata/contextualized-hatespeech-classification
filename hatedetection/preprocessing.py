@@ -28,7 +28,7 @@ def camel_to_human(s, lower=True):
     return ret
 
 emoji_regex = re.compile(r"\|([^\|]+)\|")
-
+laughter_regex = re.compile("[ja][ja]+aj[ja]+")
 
 def convert_emoji_to_text(x):
     """
@@ -37,8 +37,9 @@ def convert_emoji_to_text(x):
 
 
 
-def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
-    preprocess_hashtags=True, hashtag_token=None, demoji=True, shorten=3):
+def preprocess_tweet(
+    text, user_token="[USER]", url_token="[URL]", preprocess_hashtags=True, hashtag_token=None,
+    demoji=True, shorten=3, normalize_laughter=True):
     """
     Basic preprocessing
 
@@ -61,6 +62,12 @@ def preprocess_tweet(text, user_token="[USER]", url_token="[URL]",
 
         text = emoji_regex.sub(
             convert_emoji_to_text,
+            text
+        )
+
+    if normalize_laughter:
+        text = laughter_regex.sub(
+            "jaja",
             text
         )
 

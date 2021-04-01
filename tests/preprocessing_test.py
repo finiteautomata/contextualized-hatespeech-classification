@@ -33,6 +33,14 @@ def test_shortens_repeated_characters():
 
     assert preprocess_tweet(text, shorten=2) == "no entiendo naadaa"
 
+def test_shortens_laughters():
+    """
+    Replaces laughters
+    """
+
+    text = "jajajajaajjajaajajaja no lo puedo creer ajajaj"
+    assert preprocess_tweet(text) == "jaja no lo puedo creer jaja"
+
 
 
 def test_preprocessing_handles_hashtags():
