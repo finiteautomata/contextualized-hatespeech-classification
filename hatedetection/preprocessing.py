@@ -33,8 +33,54 @@ laughter_regex = re.compile("[ja][ja]+aj[ja]+")
 def convert_emoji_to_text(x):
     """
     """
-    return "[EMOJI]" + " ".join(x.groups()[0].split("_")) + "[EMOJI]"
+    return "[EMOJI] " + " ".join(x.groups()[0].split("_")) + " [EMOJI]"
 
+
+replacements = {
+    "~": None,
+    "£": None,
+    "¥": None,
+    "¨": '"',
+    "©": None,
+    "«": '"',
+    "°": None,
+    "´": None,
+    "¶": None,
+    "·": None,
+    "º": None,
+    "»": '"',
+    "×": None,
+    "ا": None,
+    "–": None,
+    "—": None,
+    "‘": None,
+    "’": None,
+    "“": '"',
+    "”": '"',
+    "•": None,
+    "…": None,
+    "‼": "!",
+    "€": "$",
+    "™": None,
+    "●": None,
+    "☠": None,
+    "☹": None,
+    "☺": None,
+    "☻": "[EMOJI] carita feliz [EMOJI]",
+    "♀": None,
+    "♂": None,
+    "♡": "corazón",
+    "♥": "corazón",
+    "⚰": None,
+    "⛱": None,
+    "⛹": None,
+    "✈": None,
+    "✓": None,
+    "❤": None,
+    "ー": None,
+    "🕯": None,
+    "🛰": None,
+}
 
 
 def preprocess_tweet(
@@ -93,5 +139,14 @@ def preprocess_tweet(
             process_hashtags,
             text
         )
+
+    ret = ""
+    for char in text:
+        if char in replacements:
+            if replacement := replacements[char]:
+                ret += replacement
+        else:
+            ret += char
+    text = ret
 
     return text

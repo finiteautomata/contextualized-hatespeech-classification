@@ -41,6 +41,15 @@ def test_shortens_laughters():
     text = "jajajajaajjajaajajaja no lo puedo creer ajajaj"
     assert preprocess_tweet(text) == "jaja no lo puedo creer jaja"
 
+def test_replaces_odd_quotation_marks():
+    """
+
+    Replaces “ -> "
+
+    """
+    text = "Pero pará un poco, “loquita”"
+
+    assert preprocess_tweet(text) == 'Pero pará un poco, "loquita"'
 
 
 def test_preprocessing_handles_hashtags():
