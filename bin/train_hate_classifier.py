@@ -5,11 +5,12 @@ import fire
 import torch
 import transformers
 from transformers import (
-    Trainer, TrainingArguments, AutoModelForSequenceClassification, AutoTokenizer
+    Trainer, TrainingArguments, AutoModelForSequenceClassification, AutoTokenizer,
+    BertTokenizerFast
 )
 from hatedetection import load_datasets
 from hatedetection.metrics import compute_hate_metrics
-
+from hatedetection.preprocessing import special_tokens
 
 def load_model_and_tokenizer(model_name, max_length):
     """
@@ -30,6 +31,24 @@ def load_model_and_tokenizer(model_name, max_length):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.model_max_length = max_length
 
+    """
+    Check for new tokens
+    """
+
+    vocab = tokenizer.get_vocab()
+    new_tokens_to_add = [tok for tok in special_tokens if tok not in tokenizer.get_vocab()]
+
+    if new_tokens_to_add:
+        """
+        TODO: Perdoname Wilkinson, te he fallado
+
+        Hay una interfaz diferente acá, no entiendo bien por qué
+        """
+        if type(tokenizer) is BertTokenizerFast:
+            tokenizer.add_special_tokens({'additional_special_tokens': new_tokens_to_add})
+        else:
+            tokenizer.add_special_tokens(new_tokens_to_add)
+        model.resize_token_embeddings(len(tokenizer))
     return model, tokenizer
 
 def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=True):
@@ -54,7 +73,7 @@ def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=Tr
 
 def train_hatespeech_classifier(
     output_path, train_path=None, test_path=None, use_context=False,
-    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16,
+    model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
     max_length=None, epochs=10, warmup_proportion=0.1,
     ):
 

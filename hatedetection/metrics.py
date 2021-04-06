@@ -11,11 +11,13 @@ def compute_hate_metrics(pred):
     """
     labels = pred.label_ids
     preds = pred.predictions.argmax(-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='macro')
+    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
+    _, _, macro_f1, _ = precision_recall_fscore_support(labels, preds, average='macro')
     acc = accuracy_score(labels, preds)
     return {
         'accuracy': acc,
         'f1': f1,
+        'macro_f1': macro_f1,
         'precision': precision,
         'recall': recall
     }
@@ -38,7 +40,9 @@ def compute_category_metrics(pred):
     recalls = []
     for i, cat in enumerate(extended_hate_categories):
         cat_labels, cat_preds = labels[:, i], preds[:, i]
-        precision, recall, f1, _ = precision_recall_fscore_support(cat_labels, cat_preds, average='macro')
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            cat_labels, cat_preds, average='binary'
+        )
 
         f1s.append(f1)
         precs.append(precision)

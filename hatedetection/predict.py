@@ -70,8 +70,10 @@ def predict_hateful(model, tokenizer, sentence, context=None):
     args.append(preprocess_tweet(sentence))
 
     idx = tokenizer.encode(*args)
+    print(tokenizer.decode(idx))
     # Reshape to be (1, L) and send to model device
     idx = torch.LongTensor(idx).view(1, -1).to(device)
+
 
     # Get logits
     output = model(idx)
