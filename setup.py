@@ -6,7 +6,7 @@ setup(
     author="Juan Manuel Pérez",
     author_email="jmperez@dc.uba.ar",
     description="A Transformer-based library for hate speech detection in Spanish",
-    packages=find_packages(),
+    packages=["hatedetection"],
     test_suite="tests",
     install_requires=[
         "transformers==4.4.0",
