@@ -46,3 +46,7 @@ Ejemplo: "@usuario Momento oportuno para hacer esa movida!!!!..ahora que la JUST
 - `CRIMINAL`: Identificadores de etiquetadores que marcaron el comentario como CRIMINAL
 
 Todos los identificadores de los anotadores están anonimizados
+
+## train.json
+
+Agrego una separación de estos datos con una asignación binaria a cada etiqueta correspondiente.

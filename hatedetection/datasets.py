@@ -2,11 +2,15 @@ import os
 import json
 import pandas as pd
 import pathlib
+from tqdm.auto import tqdm
+from pandarallel import pandarallel
 from sklearn.model_selection import train_test_split
 from datasets import Dataset, Value, ClassLabel, Features
 from .categories import extended_hate_categories
 from .preprocessing import preprocess_tweet
 
+
+pandarallel.initialize()
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -15,17 +19,20 @@ _train_path = os.path.join(data_dir, "train.json")
 _test_path = os.path.join(data_dir, "test.json")
 
 
-def serialize(article, comment):
+def serialize(article, comment, add_body):
     """
     Serializes article and comment
     """
     ret = comment.copy()
-    ret["context"] = article["title"]
+    ret["title"] = article["title"]
+
+    if add_body:
+        ret["body"] = article["body"]
     return ret
 
 
 
-def load_datasets(train_path=None, test_path=None):
+def load_datasets(train_path=None, test_path=None, add_body=False, limit=None):
     """
     Load and return datasets
 
@@ -44,10 +51,12 @@ def load_datasets(train_path=None, test_path=None):
         test_articles = json.load(f)
 
 
+    train_comments = [serialize(article, comment, add_body) for article in train_articles for comment in article["comments"]]
+    test_comments = [serialize(article, comment, add_body) for article in test_articles for comment in article["comments"]]
 
-    train_comments = [serialize(article, comment) for article in train_articles for comment in article["comments"]]
-    test_comments = [serialize(article, comment) for article in test_articles for comment in article["comments"]]
-
+    if limit:
+        train_comments = train_comments[:limit]
+        test_comments = test_comments[:limit]
     train_df = pd.DataFrame(train_comments)
     test_df = pd.DataFrame(test_comments)
 
@@ -58,15 +67,23 @@ def load_datasets(train_path=None, test_path=None):
     """
 
     for df in [train_df, dev_df, test_df]:
-        df["text"] = df["text"].apply(preprocess_tweet)
-        df["context"] = df["context"].apply(preprocess_tweet)
+        df["text"] = df["text"].parallel_apply(preprocess_tweet)
+        df["title"] = df["title"].parallel_apply(preprocess_tweet)
+        if add_body:
+            """
+            TODO: Perhaps tweet preprocessing is not suitable for the body
+            """
+            df["body"] = df["body"].parallel_apply(preprocess_tweet)
 
     features = Features({
         'id': Value('uint64'),
-        'context': Value('string'),
+        'title': Value('string'),
         'text': Value('string'),
         'HATEFUL': ClassLabel(num_classes=2, names=["Not Hateful", "Hateful"])
     })
+
+    if add_body:
+        features["body"] = Value('string')
 
 
     for cat in extended_hate_categories:
@@ -75,13 +92,7 @@ def load_datasets(train_path=None, test_path=None):
         """
         features[cat] = ClassLabel(num_classes=2, names=["NO", "YES"])
 
-    columns = [
-        "id",
-        "context",
-        "text",
-        "HATEFUL"
-    ] + extended_hate_categories
-
+    columns = list(features.keys())
 
     train_dataset = Dataset.from_pandas(train_df[columns], features=features)
     dev_dataset = Dataset.from_pandas(dev_df[columns], features=features)

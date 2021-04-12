@@ -1,6 +1,7 @@
 """
 Script to train hatespeech classifier
 """
+import sys
 import fire
 import torch
 import transformers
@@ -51,7 +52,7 @@ def load_model_and_tokenizer(model_name, max_length):
         model.resize_token_embeddings(len(tokenizer))
     return model, tokenizer
 
-def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=True):
+def tokenize(tokenizer, batch, context, padding='max_length', truncation='longest_first'):
     """
     Apply tokenization
 
@@ -62,8 +63,10 @@ def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=Tr
         Whether to add the context to the
     """
 
-    if context:
+    if context == 'title':
         args = [batch['context'], batch['text']]
+    elif context == 'body':
+        args = [batch['body'], batch['text']]
     else:
         args = [batch['text']]
 
@@ -72,7 +75,7 @@ def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=Tr
 
 
 def train_hatespeech_classifier(
-    output_path, train_path=None, test_path=None, use_context=False,
+    output_path, train_path=None, test_path=None, context='none',
     model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
     max_length=None, epochs=10, warmup_proportion=0.1,
     ):
@@ -82,34 +85,50 @@ def train_hatespeech_classifier(
 
     Arguments:
     ----------
-
+    output_path:
+        Where we save the classifier
     train_path:
         Path to training data
     test_path:
         Path to test data
+
+    context: string
+        One of {'none', 'title', 'body'}
     """
     print("*"*80)
     print("Training hate speech classifier")
-    print(f"Uses context: {use_context}")
+
+    allowed_contexts = {'none', 'title', 'body'}
+    if context not in allowed_contexts:
+        print("")
+        sys.exit(1)
+
+    print(f"Uses context: {context}")
+
+    lengths = {
+        'none': 128,
+        'title': 256,
+        'body': 512
+    }
     if not max_length:
-        max_length = 256 if use_context else 128
+        max_length = lengths[context]
     print(f"Tokenizer max length: {max_length}")
     print("*"*80, end="\n"*3)
 
     print("Loading datasets... ", end="")
-    train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path)
+    add_body = True if context == 'body' else False
+    train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path, add_body=add_body)
+
     print("Done")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
-
     print("")
     print("Loading model and tokenizer... ", end="")
     model, tokenizer = load_model_and_tokenizer(model_name, max_length)
     print("Done")
 
 
-    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=use_context)
+    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
 
     print("Tokenizing and formatting datasets...")
     train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)

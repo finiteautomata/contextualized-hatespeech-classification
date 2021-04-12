@@ -21,6 +21,7 @@ datasets = "*"
 hatespeech-classification = {editable = true, path = "."}
 torch = "*"
 pytest = "*"
+pandarallel = "*"
 
 [requires]
 python_version = "3.8"
