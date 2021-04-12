@@ -184,7 +184,10 @@ def train_hatespeech_classifier(
         import torch_xla.distributed.parallel_loader as pl
         import torch_xla.distributed.xla_multiprocessing as xmp
 
-        xmp.spawn(train, args=args, start_method="fork")
+        def _mp_fn(index):
+            train(*args)
+
+        xmp.spawn(_mp_fn, start_method="fork")
     else:
         train(*args)
 
