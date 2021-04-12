@@ -73,28 +73,11 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     return tokenizer(*args, padding='max_length', truncation=True)
 
 
-
-def train_hatespeech_classifier(
-    output_path, train_path=None, test_path=None, context='none',
-    model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
-    max_length=None, epochs=10, warmup_proportion=0.1,
-    ):
-
+def train(output_path, train_path, test_path, context, model_name, batch_size, eval_batch_size, max_length, epochs, warmup_proportion):
     """
-    Train and save hatespeech classifier
-
-    Arguments:
-    ----------
-    output_path:
-        Where we save the classifier
-    train_path:
-        Path to training data
-    test_path:
-        Path to test data
-
-    context: string
-        One of {'none', 'title', 'body'}
+    Split this fpr TPU
     """
+
     print("*"*80)
     print("Training hate speech classifier")
 
@@ -187,6 +170,23 @@ def train_hatespeech_classifier(
     tokenizer.save_pretrained(output_path)
 
     print(f"Models saved at {output_path}")
+
+def train_hatespeech_classifier(
+    output_path, train_path=None, test_path=None, context='none', use_tpu=False,
+    model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
+    max_length=None, epochs=10, warmup_proportion=0.1,
+    ):
+
+
+    args = (output_path, train_path, test_path, context, model_name, batch_size, eval_batch_size, max_length, epochs, warmup_proportion)
+    if use_tpu:
+        import torch_xla.core.xla_model as xm
+        import torch_xla.distributed.parallel_loader as pl
+        import torch_xla.distributed.xla_multiprocessing as xmp
+
+        xmp.spawn(train, args=args, start_method="fork")
+    else:
+        train(*args)
 
 if __name__ == '__main__':
     fire.Fire(train_hatespeech_classifier)
