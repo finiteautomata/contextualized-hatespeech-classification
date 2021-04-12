@@ -150,7 +150,8 @@ def preprocess_tweet(
     ret = ""
     for char in text:
         if char in replacements:
-            if replacement := replacements[char]:
+            replacement = replacements[char]
+            if replacement:
                 ret += replacement
         else:
             ret += char
