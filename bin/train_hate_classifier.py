@@ -172,7 +172,7 @@ def train(output_path, train_path, test_path, context, model_name, batch_size, e
     print(f"Models saved at {output_path}")
 
 def train_hatespeech_classifier(
-    output_path, train_path=None, test_path=None, context='none', use_tpu=False,
+    output_path, train_path=None, test_path=None, context='none', use_tpu=False, num_tpu_cores=None,
     model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
     max_length=None, epochs=10, warmup_proportion=0.1,
     ):
@@ -187,7 +187,7 @@ def train_hatespeech_classifier(
         def _mp_fn(index):
             train(*args)
 
-        xmp.spawn(_mp_fn, start_method="fork")
+        xmp.spawn(_mp_fn, start_method="fork", nprocs=num_tpu_cores)
     else:
         train(*args)
 
