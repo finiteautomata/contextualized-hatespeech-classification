@@ -64,7 +64,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     """
 
     if context == 'title':
-        args = [batch['context'], batch['text']]
+        args = [batch['title'], batch['text']]
     elif context == 'body':
         args = [batch['body'], batch['text']]
     else:

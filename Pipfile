@@ -22,6 +22,7 @@ hatespeech-classification = {editable = true, path = "."}
 torch = "*"
 pytest = "*"
 pandarallel = "*"
+emoji = "*"
 
 [requires]
 python_version = "3.8"
