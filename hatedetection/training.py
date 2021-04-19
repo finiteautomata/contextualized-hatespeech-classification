@@ -13,7 +13,8 @@ def load_hatespeech_model_and_tokenizer(model_name, context, max_length=None):
     lengths = {
         'none': 128,
         'title': 256,
-        'body': 512
+        'body': 512,
+        'title+body': 512,
     }
     if not max_length:
         max_length = lengths[context]
@@ -66,13 +67,18 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     """
 
     if context == 'title':
-        args = [batch['title'], batch['text']]
+        tokenize_args = [batch['title'], batch['text']]
     elif context == 'body':
-        args = [batch['body'], batch['text']]
+        tokenize_args = [batch['body'], batch['text']]
+    elif context == "title+body":
+        tokenize_args = [
+            [title + " - "+ body for title, body in zip(batch['title'],batch['body'])],
+            batch['text']
+        ]
     else:
-        args = [batch['text']]
+        tokenize_args = [batch['text']]
 
-    return tokenizer(*args, padding='max_length', truncation=True)
+    return tokenizer(*tokenize_args, padding='max_length', truncation=truncation)
 
 
 def train_hatespeech_classifier(

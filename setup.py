@@ -11,6 +11,6 @@ setup(
     install_requires=[
         "transformers==4.4.0",
         "datasets==1.4.1",
-	"torch"
+	"torch==1.7.1"
     ]
 )

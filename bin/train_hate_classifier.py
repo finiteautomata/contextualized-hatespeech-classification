@@ -22,7 +22,7 @@ def train_model(
     print("*"*80)
     print("Training hate speech classifier")
 
-    allowed_contexts = {'none', 'title', 'body'}
+    allowed_contexts = {'none', 'title', 'body', 'title+body'}
 
     if context not in allowed_contexts:
         print("")
@@ -34,7 +34,7 @@ def train_model(
 
     print("Loading datasets... ", end="")
 
-    add_body = True if context == 'body' else False
+    add_body = True if "body" in context else False
     train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path, add_body=add_body)
 
     print("Done")
