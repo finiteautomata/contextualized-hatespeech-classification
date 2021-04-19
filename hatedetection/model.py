@@ -1,8 +1,10 @@
 import torch
 from torch import nn
 from torch.nn import BCEWithLogitsLoss
-from transformers import BertPreTrainedModel, BertTokenizer, BertModel
 from transformers.modeling_outputs import SequenceClassifierOutput
+from transformers import (
+    BertPreTrainedModel, BertModel
+)
 
 class BertForSequenceMultiClassification(BertPreTrainedModel):
     """
@@ -81,3 +83,4 @@ class BertForSequenceMultiClassification(BertPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
+
