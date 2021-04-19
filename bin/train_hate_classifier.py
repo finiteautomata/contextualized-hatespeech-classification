@@ -17,7 +17,6 @@ def train_model(
     max_length=None, epochs=10, warmup_proportion=0.1,
     ):
     """
-    Split this fpr TPU
     """
 
     print("*"*80)

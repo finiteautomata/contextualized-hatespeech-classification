@@ -62,10 +62,10 @@ def create_dataset(articles_path, comments_path, train_path, test_path, train_si
     print(f"Test Articles: {len(test_articles)}")
 
     with open(train_path, "w") as f:
-        json.dump(train_articles, f)
+        json.dump(train_articles, f, indent=4)
 
     with open(test_path, "w") as f:
-        json.dump(test_articles, f)
+        json.dump(test_articles, f, indent=4)
 
 
 if __name__ == '__main__':
