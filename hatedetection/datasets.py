@@ -3,13 +3,11 @@ import json
 import pandas as pd
 import pathlib
 from tqdm.auto import tqdm
-from pandarallel import pandarallel
 from sklearn.model_selection import train_test_split
 from datasets import Dataset, Value, ClassLabel, Features
 from .categories import extended_hate_categories
 from .preprocessing import preprocess_tweet
 
-pandarallel.initialize()
 
 project_dir = pathlib.Path(os.path.dirname(__file__)).parent
 data_dir = os.path.join(project_dir, "data")
@@ -66,6 +64,9 @@ def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, p
     """
 
     if preprocess:
+        import pandarallel
+        pandarallel.initialize()
+
         for df in [train_df, dev_df, test_df]:
             df["text"] = df["text"].parallel_apply(preprocess_tweet)
             df["title"] = df["title"].parallel_apply(preprocess_tweet)
