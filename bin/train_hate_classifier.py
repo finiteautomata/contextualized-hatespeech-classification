@@ -47,11 +47,13 @@ def train_model(
     print("Done")
 
 
-    trainer, evaluation = train_hatespeech_classifier(
+    trainer, dev_dataset = train_hatespeech_classifier(
         model, my_tokenize, train_dataset=train_dataset, dev_dataset=dev_dataset,
         batch_size=batch_size, eval_batch_size=eval_batch_size, max_length=max_length,
         epochs=epochs, warmup_proportion=warmup_proportion,
     )
+
+    evaluation = trainer.evaluate(dev_dataset)
 
     print("\n*3", f"Evaluation: {evaluation}")
 

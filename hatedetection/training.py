@@ -136,5 +136,4 @@ def train_hatespeech_classifier(
 
     trainer.train()
 
-    evaluation =  trainer.evaluate(dev_dataset)
-    return trainer, evaluation
+    return trainer
