@@ -82,30 +82,11 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
 
 
 def train_hatespeech_classifier(
-    model, tokenize_fun, train_dataset, dev_dataset,
-    batch_size, eval_batch_size, max_length=None, epochs=10, warmup_proportion=0.1,
+    model, train_dataset, dev_dataset,
+    batch_size, eval_batch_size, epochs=10, warmup_proportion=0.1,
     ):
     """
     Train hate speech classifier
-    """
-
-
-    print("Tokenizing and formatting datasets...")
-
-    train_dataset = train_dataset.map(tokenize_fun, batched=True, batch_size=batch_size)
-    dev_dataset = dev_dataset.map(tokenize_fun, batched=True, batch_size=eval_batch_size)
-
-
-    def format_dataset(dataset):
-        dataset = dataset.map(lambda examples: {'labels': examples['HATEFUL']})
-        dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
-        return dataset
-
-    train_dataset = format_dataset(train_dataset)
-    dev_dataset = format_dataset(dev_dataset)
-
-    """
-    Finally, train!
     """
 
     total_steps = (epochs * len(train_dataset)) // batch_size
@@ -124,8 +105,6 @@ def train_hatespeech_classifier(
         metric_for_best_model="f1",
     )
 
-    results = []
-
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -136,4 +115,4 @@ def train_hatespeech_classifier(
 
     trainer.train()
 
-    return trainer
+    return trainer, dev_dataset

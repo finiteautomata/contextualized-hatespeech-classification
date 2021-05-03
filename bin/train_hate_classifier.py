@@ -43,13 +43,31 @@ def train_model(
     print("")
     print("Loading model and tokenizer... ", end="")
     model, tokenizer = load_hatespeech_model_and_tokenizer(model_name, context, max_length=max_length)
-    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
     print("Done")
 
 
+    print("Tokenizing and formatting datasets...")
+    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
+    train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)
+    dev_dataset = dev_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
+
+
+    def format_dataset(dataset):
+        dataset = dataset.map(lambda examples:{'labels': examples['HATEFUL']})
+        dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+        return dataset
+
+    train_dataset = format_dataset(train_dataset)
+    dev_dataset = format_dataset(dev_dataset)
+
+    """
+    Finally, train!
+    """
+
+
     trainer, dev_dataset = train_hatespeech_classifier(
-        model, my_tokenize, train_dataset=train_dataset, dev_dataset=dev_dataset,
-        batch_size=batch_size, eval_batch_size=eval_batch_size, max_length=max_length,
+        model, train_dataset=train_dataset, dev_dataset=dev_dataset,
+        batch_size=batch_size, eval_batch_size=eval_batch_size,
         epochs=epochs, warmup_proportion=warmup_proportion,
     )
 
