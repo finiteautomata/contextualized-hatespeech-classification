@@ -84,7 +84,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
 def train_hatespeech_classifier(
     model, train_dataset, dev_dataset,
     batch_size, eval_batch_size, epochs=10, warmup_proportion=0.1,
-    ):
+    load_best_model_at_end=True, metric_for_best_model="f1"):
     """
     Train hate speech classifier
     """
@@ -101,8 +101,8 @@ def train_hatespeech_classifier(
         do_eval=False,
         weight_decay=0.01,
         logging_dir='./logs',
-        load_best_model_at_end=True,
-        metric_for_best_model="f1",
+        load_best_model_at_end=load_best_model_at_end,
+        metric_for_best_model=metric_for_best_model,
     )
 
     trainer = Trainer(
