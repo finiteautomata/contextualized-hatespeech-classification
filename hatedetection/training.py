@@ -55,28 +55,40 @@ def load_hatespeech_model_and_tokenizer(model_name, context, max_length=None):
     return model, tokenizer
 
 
-def tokenize(tokenizer, batch, context, padding='max_length', truncation='longest_first'):
+def tokenize(tokenizer, batch, context, padding='max_length', truncation='longest_first', context_first=False):
     """
     Apply tokenization
 
     Arguments:
     ---------
 
-    context: string (default True)
-        Type of allowed context. Options are ['none', 'title', 'body']
+    context: string
+        Type of allowed context. Options are ['none', 'title', 'body', 'title+body']
     """
 
     if context == 'title':
-        tokenize_args = [batch['title'], batch['text']]
+        tokenize_args = [
+            batch['text'],
+            batch['title']
+        ]
     elif context == 'body':
-        tokenize_args = [batch['body'], batch['text']]
+        tokenize_args = [
+            batch['text'],
+            batch['body']
+        ]
     elif context == "title+body":
         tokenize_args = [
+            batch['text'],
             [title + " - "+ body for title, body in zip(batch['title'],batch['body'])],
-            batch['text']
         ]
-    else:
+    elif context == 'none':
         tokenize_args = [batch['text']]
+    else:
+        raise ValueError("Invalid context. Must be one of 'title', 'body', 'title+body'")
+
+    if context_first:
+        # Invert it
+        tokenize_args = tokenize_args[::-1]
 
     return tokenizer(*tokenize_args, padding='max_length', truncation=truncation)
 
@@ -84,7 +96,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
 def train_hatespeech_classifier(
     model, train_dataset, dev_dataset,
     batch_size, eval_batch_size, epochs=10, warmup_proportion=0.1,
-    load_best_model_at_end=True, metric_for_best_model="f1"):
+    load_best_model_at_end=True, metric_for_best_model="f1", **kwargs):
     """
     Train hate speech classifier
     """
@@ -103,6 +115,7 @@ def train_hatespeech_classifier(
         logging_dir='./logs',
         load_best_model_at_end=load_best_model_at_end,
         metric_for_best_model=metric_for_best_model,
+        **kwargs
     )
 
     trainer = Trainer(
