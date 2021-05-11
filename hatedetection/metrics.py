@@ -27,6 +27,7 @@ def compute_category_metrics(pred):
     """
     Compute metrics for hatespeech category classifier
     """
+
     labels = pred.label_ids
     preds = torch.sigmoid(torch.Tensor(pred.predictions)).round()
 

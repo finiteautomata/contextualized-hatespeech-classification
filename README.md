@@ -17,11 +17,18 @@ First, plain hate classifiers
 ```
 # Train non-contextualized model
 python bin/train_hate_classifier.py --context 'none' --output_path models/bert-non-contextualized-hate-speech-es/ --epochs 10
-python bin/train_category_classifier.py --output_path models/bert-non-contextualized-hate-category-es/ --epochs 5
+python bin/train_category_classifier.py --context 'none' --output_path models/bert-non-contextualized-hate-category-es/ --epochs 5
 
 # Train contextualized model
 python bin/train_hate_classifier.py --context 'title' --output_path models/bert-contextualized-hate-speech-es/ --epochs 10
-python bin/train_category_classifier.py --use_context --output_path models/bert-contextualized-hate-category-es/ --epochs 5
+python bin/train_category_classifier.py --context 'title' --output_path models/bert-contextualized-hate-category-es/ --epochs 5
+
+
+# Train fully contextualized
+# Check out notebooks/Hatespeech_Colab_TPU.ipynb
+python bin/train_category_classifier.py --context 'title+body' --output_path models/bert-title+body-hate-speech-es/ --epochs 5 --batch_size 8 --eval_batch_size 8
+python bin/train_hate_classifier.py --context 'title+body' --output_path models/bert-title+body-hate-speech-es/ --epochs 10
 ```
 
-python bin/train_hate_classifier.py --context 'title+body' --output_path models/bert-title+body-hate-speech-es/ --epochs 10
+
+

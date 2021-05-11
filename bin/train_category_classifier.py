@@ -3,18 +3,29 @@ Script to train hatespeech classifier
 """
 import fire
 import torch
-import transformers
+import sys
 from transformers import (
-    Trainer, TrainingArguments, AutoModelForSequenceClassification, AutoTokenizer
+    Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast
 )
 from hatedetection import BertForSequenceMultiClassification, load_datasets, extended_hate_categories
+from hatedetection.training import tokenize
+from hatedetection.preprocessing import special_tokens
 from hatedetection.metrics import compute_category_metrics
 
 
-def load_model_and_tokenizer(model_name, max_length):
+def load_model_and_tokenizer(model_name, context, max_length=None):
     """
     Load model and tokenizer
     """
+
+    lengths = {
+        'none': 128,
+        'title': 256,
+        'body': 512,
+        'title+body': 512,
+    }
+    if not max_length:
+        max_length = lengths[context]
 
     model = BertForSequenceMultiClassification.from_pretrained(
         model_name, return_dict=True, num_labels=len(extended_hate_categories)
@@ -25,30 +36,27 @@ def load_model_and_tokenizer(model_name, max_length):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.model_max_length = max_length
 
+    vocab = tokenizer.get_vocab()
+    new_tokens_to_add = [tok for tok in special_tokens if tok not in tokenizer.get_vocab()]
+
+    if new_tokens_to_add:
+        """
+        TODO: Perdoname Wilkinson, te he fallado
+
+        Hay una interfaz diferente acá, no entiendo bien por qué
+        """
+        if type(tokenizer) is BertTokenizerFast:
+            tokenizer.add_special_tokens({'additional_special_tokens': new_tokens_to_add})
+        else:
+            tokenizer.add_special_tokens(new_tokens_to_add)
+        model.resize_token_embeddings(len(tokenizer))
+
     return model, tokenizer
-
-def tokenize(tokenizer, batch, context=True, padding='max_length', truncation=True):
-    """
-    Apply tokenization
-
-    Arguments:
-    ---------
-
-    use_context: boolean (default True)
-        Whether to add the context to the
-    """
-
-    if context:
-        args = [batch['context'], batch['text']]
-    else:
-        args = [batch['text']]
-
-    return tokenizer(*args, padding='max_length', truncation=True)
 
 
 
 def train_category_classifier(
-    output_path, train_path=None, test_path=None, use_context=False,
+    output_path, train_path=None, test_path=None, context='none',
     model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16,
     max_length=None, epochs=5, warmup_proportion=0.1,
     ):
@@ -66,14 +74,20 @@ def train_category_classifier(
     """
     print("*"*80)
     print("Training hate speech category classifier")
-    print(f"Uses context: {use_context}")
-    if not max_length:
-        max_length = 256 if use_context else 128
+    allowed_contexts = {'none', 'title', 'body', 'title+body'}
+
+    if context not in allowed_contexts:
+        print("")
+        sys.exit(1)
+
+    print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
     print("*"*80, end="\n"*3)
 
     print("Loading datasets... ", end="")
-    train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path)
+    add_body = True if "body" in context else False
+
+    train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path, add_body=add_body)
 
     train_dataset = train_dataset.filter(lambda x: x["HATEFUL"] > 0)
     dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
@@ -85,11 +99,11 @@ def train_category_classifier(
 
     print("")
     print("Loading model and tokenizer... ", end="")
-    model, tokenizer = load_model_and_tokenizer(model_name, max_length)
+    model, tokenizer = load_model_and_tokenizer(model_name, context, max_length)
     print("Done")
 
 
-    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=use_context)
+    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
 
     print("Tokenizing and formatting datasets...")
     train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)
@@ -129,8 +143,6 @@ def train_category_classifier(
         load_best_model_at_end=True,
         metric_for_best_model="mean_f1",
     )
-
-    results = []
 
     trainer = Trainer(
         model=model,
