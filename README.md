@@ -35,12 +35,12 @@ python bin/train_hate_classifier.py --context 'title+body' --output_path models/
 
 Train multiple models
 ```bash
-for i in {7..8}
+for i in {6..6}
 do
     echo "models/bert-contextualized-hate-speech-es_${i}/"
     output_dir="./results_contextualized/${i}"
     echo $output_dir
-    python bin/train_hate_classifier.py --context 'title' --output_path "models/bert-contextualized-hate-speech-es_${i}/" --epochs 10 --output_dir $output_dir
+    CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context 'title' --output_path "models/bert-contextualized-hate-speech-es_${i}/" --epochs 10 --output_dir $output_dir
     rm -Rf $output_dir
 done
 
@@ -74,7 +74,7 @@ do
 done
 
 
-for i in {1..}
+for i in {1..10}
 do
     if [[ $i -eq 1 ]];
     then
