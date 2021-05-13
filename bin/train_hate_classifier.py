@@ -1,6 +1,7 @@
 """
 Script to train hatespeech classifier
 """
+import os
 import sys
 import fire
 import torch
@@ -12,7 +13,7 @@ from hatedetection.training import (
 
 
 def train_model(
-    output_path, train_path=None, test_path=None, context='none',
+    output_path, train_path=None, test_path=None, context='none', output_dir=None,
     model_name = 'dccuchile/bert-base-spanish-wwm-uncased', batch_size=32, eval_batch_size=16,
     max_length=None, epochs=10, warmup_proportion=0.1,
     ):
@@ -28,9 +29,13 @@ def train_model(
         print("")
         sys.exit(1)
 
+    if not output_dir:
+        output_dir = os.path.join("results", output_path)
+
     print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
     print("*"*80, end="\n"*3)
+    print("Output_dir: ", output_dir)
 
     print("Loading datasets... ", end="")
 
@@ -67,6 +72,8 @@ def train_model(
 
     trainer, dev_dataset = train_hatespeech_classifier(
         model, train_dataset=train_dataset, dev_dataset=dev_dataset,
+        # Intermediate results at 'results/'
+        output_dir=output_dir,
         batch_size=batch_size, eval_batch_size=eval_batch_size,
         epochs=epochs, warmup_proportion=warmup_proportion,
     )

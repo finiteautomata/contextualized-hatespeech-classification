@@ -5,17 +5,18 @@ from transformers import (
     AutoModelForSequenceClassification, AutoTokenizer
 )
 
+lengths = {
+    'none': 128,
+    'title': 256,
+    'body': 512,
+    'title+body': 512,
+}
+
 def load_hatespeech_model_and_tokenizer(model_name, context, max_length=None):
     """
     Load model and tokenizer for hate speech classification
     """
 
-    lengths = {
-        'none': 128,
-        'title': 256,
-        'body': 512,
-        'title+body': 512,
-    }
     if not max_length:
         max_length = lengths[context]
 
@@ -95,7 +96,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
 
 def train_hatespeech_classifier(
     model, train_dataset, dev_dataset,
-    batch_size, eval_batch_size, epochs=10, warmup_proportion=0.1,
+    batch_size, eval_batch_size, output_dir, epochs=10, warmup_proportion=0.1,
     load_best_model_at_end=True, metric_for_best_model="f1", **kwargs):
     """
     Train hate speech classifier
@@ -104,7 +105,7 @@ def train_hatespeech_classifier(
     total_steps = (epochs * len(train_dataset)) // batch_size
     warmup_steps = int(warmup_proportion * total_steps)
     training_args = TrainingArguments(
-        output_dir='./results',
+        output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,
