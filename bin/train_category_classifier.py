@@ -1,6 +1,7 @@
 """
 Script to train hatespeech classifier
 """
+import os
 import fire
 import torch
 import sys
@@ -57,7 +58,7 @@ def load_model_and_tokenizer(model_name, context, max_length=None):
 
 def train_category_classifier(
     output_path, train_path=None, test_path=None, context='none',
-    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16,
+    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16, output_dir=None,
     max_length=None, epochs=5, warmup_proportion=0.1,
     ):
 
@@ -79,6 +80,9 @@ def train_category_classifier(
     if context not in allowed_contexts:
         print("")
         sys.exit(1)
+
+    if not output_dir:
+        output_dir = os.path.join("results", output_path)
 
     print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
@@ -131,7 +135,7 @@ def train_category_classifier(
     total_steps = (epochs * len(train_dataset)) // batch_size
     warmup_steps = int(warmup_proportion * total_steps)
     training_args = TrainingArguments(
-        output_dir='./results',
+        output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,

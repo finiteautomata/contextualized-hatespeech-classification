@@ -35,7 +35,7 @@ python bin/train_hate_classifier.py --context 'title+body' --output_path models/
 
 Train multiple models
 ```bash
-for i in {6..6}
+for i in {1..10}
 do
     echo "models/bert-contextualized-hate-speech-es_${i}/"
     output_dir="./results_contextualized/${i}"
@@ -51,6 +51,27 @@ do
     output_dir="./results_non_contextualized/${i}"
     echo $output_dir
     CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context 'none' --output_path $model_path --epochs 10 --output_dir $output_dir
+    rm -Rf $output_dir
+done
+
+## Category
+
+for i in {1..10}
+do
+    model_path="models/bert-non-contextualized-hate-category-es_${i}/"
+    output_dir="./results_non_contextualized/${i}"
+    echo $output_dir
+    python bin/train_category_classifier.py --context 'none' --output_path $model_path --epochs 5 --output_dir $output_dir
+    rm -Rf $output_dir
+done
+
+
+for i in {1..10}
+do
+    model_path="models/bert-contextualized-hate-category-es_${i}/"
+    output_dir="./results_contextualized/${i}"
+    echo $output_dir
+    CUDA_VISIBLE_DEVICES=1 python bin/train_category_classifier.py --context 'title' --output_path $model_path --epochs 5 --output_dir $output_dir
     rm -Rf $output_dir
 done
 ```
@@ -86,6 +107,37 @@ do
     echo $model_path
     echo $output_dir
     CUDA_VISIBLE_DEVICES=1 python bin/eval_hate_speech.py --context 'title' --model_name $model_path --output_path $output_dir
+done
+
+## Category
+
+for i in {0..10}
+do
+    if [[ $i -eq 0 ]];
+    then
+        model_path="models/bert-non-contextualized-hate-category-es/"
+    else
+        model_path="models/bert-non-contextualized-hate-category-es_${i}/"
+    fi
+    output_dir="./evaluations/non-context-category-${i}.json"
+    echo $model_path
+    echo $output_dir
+    CUDA_VISIBLE_DEVICES=0 python bin/eval_hate_category.py --context 'none' --model_name $model_path --output_path $output_dir
+done
+
+
+for i in {0..6}
+do
+    if [[ $i -eq 0 ]];
+    then
+        model_path="models/bert-contextualized-hate-category-es/"
+    else
+        model_path="models/bert-contextualized-hate-category-es_${i}/"
+    fi
+    output_dir="./evaluations/context-category-${i}.json"
+    echo $model_path
+    echo $output_dir
+    CUDA_VISIBLE_DEVICES=0 python bin/eval_hate_category.py --context 'title' --model_name $model_path --output_path $output_dir
 done
 ```
 
