@@ -35,7 +35,7 @@ python bin/train_hate_classifier.py --context 'title+body' --output_path models/
 
 Train multiple models
 ```bash
-for i in {1..10}
+for i in {1..15}
 do
     echo "models/bert-contextualized-hate-speech-es_${i}/"
     output_dir="./results_contextualized/${i}"
@@ -45,7 +45,7 @@ do
 done
 
 
-for i in {1..10}
+for i in {1..15}
 do
     model_path="models/bert-non-contextualized-hate-speech-es_${i}/"
     output_dir="./results_non_contextualized/${i}"
@@ -80,7 +80,7 @@ done
 
 ```bash
 
-for i in {1..10}
+for i in {1..15}
 do
     if [[ $i -eq 1 ]];
     then
@@ -88,14 +88,14 @@ do
     else
         model_path="models/bert-non-contextualized-hate-speech-es_${i}/"
     fi
-    output_dir="./evaluations/non-context-${i}"
+    output_dir="./evaluations/non-context-${i}.json"
     echo $model_path
     echo $output_dir
     CUDA_VISIBLE_DEVICES=1 python bin/eval_hate_speech.py --context 'none' --model_name $model_path --output_path $output_dir
 done
 
 
-for i in {1..10}
+for i in {1..15}
 do
     if [[ $i -eq 1 ]];
     then
@@ -103,7 +103,7 @@ do
     else
         model_path="models/bert-contextualized-hate-speech-es_${i}/"
     fi
-    output_dir="./evaluations/context-${i}"
+    output_dir="./evaluations/context-${i}.json"
     echo $model_path
     echo $output_dir
     CUDA_VISIBLE_DEVICES=1 python bin/eval_hate_speech.py --context 'title' --model_name $model_path --output_path $output_dir
@@ -126,7 +126,7 @@ do
 done
 
 
-for i in {0..6}
+for i in {0..10}
 do
     if [[ $i -eq 0 ]];
     then
@@ -140,5 +140,3 @@ do
     CUDA_VISIBLE_DEVICES=0 python bin/eval_hate_category.py --context 'title' --model_name $model_path --output_path $output_dir
 done
 ```
-
-

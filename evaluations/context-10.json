@@ -56725,15 +56725,15 @@
         "eval_macro_f1": 0.8034964386571177,
         "eval_precision": 0.725,
         "eval_recall": 0.6132442960489705,
-        "eval_runtime": 84.9726,
-        "eval_samples_per_second": 133.49,
-        "init_mem_cpu_alloc_delta": 51854,
+        "eval_runtime": 85.1733,
+        "eval_samples_per_second": 133.176,
+        "init_mem_cpu_alloc_delta": 51782,
         "init_mem_gpu_alloc_delta": 0,
         "init_mem_cpu_peaked_delta": 18258,
         "init_mem_gpu_peaked_delta": 0,
-        "test_mem_cpu_alloc_delta": 405599,
+        "test_mem_cpu_alloc_delta": 405204,
         "test_mem_gpu_alloc_delta": 0,
-        "test_mem_cpu_peaked_delta": 887224,
+        "test_mem_cpu_peaked_delta": 887161,
         "test_mem_gpu_peaked_delta": 189087744
     }
 }
