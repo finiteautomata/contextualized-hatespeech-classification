@@ -149,7 +149,7 @@ do
     python bin/eval_hate_category.py --context 'title' --model_name $model_path --output_path $output_dir
 done
 
-for i in {1..7}
+for i in {1..15}
 do
     model_path="models/bert-title-body-hate-category-es_${i}/"
     output_dir="./evaluations/title-body-category-${i}.json"
