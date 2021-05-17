@@ -56,7 +56,7 @@ done
 
 ## Category
 
-for i in {1..10}
+for i in {1..15}
 do
     model_path="models/bert-non-contextualized-hate-category-es_${i}/"
     output_dir="./results_non_contextualized/${i}"
@@ -66,12 +66,21 @@ do
 done
 
 
-for i in {1..10}
+for i in {1..15}
 do
     model_path="models/bert-contextualized-hate-category-es_${i}/"
     output_dir="./results_contextualized/${i}"
     echo $output_dir
     CUDA_VISIBLE_DEVICES=1 python bin/train_category_classifier.py --context 'title' --output_path $model_path --epochs 5 --output_dir $output_dir
+    rm -Rf $output_dir
+done
+
+for i in {1..15}
+do
+    model_path="models/bert-title-body-hate-category-es_${i}/"
+    output_dir="./results_contextualized/${i}"
+    echo $output_dir
+    CUDA_VISIBLE_DEVICES=1 python bin/train_category_classifier.py --context 'title+body' --output_path $model_path --epochs 5 --output_dir $output_dir --batch_size 8 --eval_batch_size 8
     rm -Rf $output_dir
 done
 ```
@@ -111,7 +120,7 @@ done
 
 ## Category
 
-for i in {0..10}
+for i in {0..15}
 do
     if [[ $i -eq 0 ]];
     then
@@ -122,11 +131,11 @@ do
     output_dir="./evaluations/non-context-category-${i}.json"
     echo $model_path
     echo $output_dir
-    CUDA_VISIBLE_DEVICES=0 python bin/eval_hate_category.py --context 'none' --model_name $model_path --output_path $output_dir
+    python bin/eval_hate_category.py --context 'none' --model_name $model_path --output_path $output_dir
 done
 
 
-for i in {0..10}
+for i in {0..15}
 do
     if [[ $i -eq 0 ]];
     then
@@ -137,6 +146,15 @@ do
     output_dir="./evaluations/context-category-${i}.json"
     echo $model_path
     echo $output_dir
-    CUDA_VISIBLE_DEVICES=0 python bin/eval_hate_category.py --context 'title' --model_name $model_path --output_path $output_dir
+    python bin/eval_hate_category.py --context 'title' --model_name $model_path --output_path $output_dir
+done
+
+for i in {1..7}
+do
+    model_path="models/bert-title-body-hate-category-es_${i}/"
+    output_dir="./evaluations/title-body-category-${i}.json"
+    echo $model_path
+    echo $output_dir
+    python bin/eval_hate_category.py --context 'title+body' --model_name $model_path --output_path $output_dir
 done
 ```
