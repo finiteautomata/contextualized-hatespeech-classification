@@ -8,6 +8,7 @@ from transformers import (
 lengths = {
     'none': 128,
     'title': 256,
+    'title-hyphen': 256,
     'body': 512,
     'title+body': 512,
 }
@@ -67,6 +68,20 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
         Type of allowed context. Options are ['none', 'title', 'body', 'title+body']
     """
 
+    valid_contexts = {'none', 'title', 'body', 'title-hyphen', 'title+body'}
+
+    if context not in valid_contexts:
+        raise ValueError(f"Invalid context. Must be one of {valid_contexts}")
+
+    kwargs = { 'padding': 'max_length', 'truncation': truncation }
+
+    if context == "title-hyphen":
+        """
+        Special case, we have to merge
+        """
+        hyphened_input = [text+" - " + title for text, title in zip(batch["text"], batch["title"])]
+        return tokenizer(hyphened_input, **kwargs)
+
     if context == 'title':
         tokenize_args = [
             batch['text'],
@@ -84,14 +99,12 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
         ]
     elif context == 'none':
         tokenize_args = [batch['text']]
-    else:
-        raise ValueError("Invalid context. Must be one of 'title', 'body', 'title+body'")
 
     if context_first:
         # Invert it
         tokenize_args = tokenize_args[::-1]
 
-    return tokenizer(*tokenize_args, padding='max_length', truncation=truncation)
+    return tokenizer(*tokenize_args, **kwargs)
 
 
 def train_hatespeech_classifier(

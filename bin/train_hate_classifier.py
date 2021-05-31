@@ -23,10 +23,11 @@ def train_model(
     print("*"*80)
     print("Training hate speech classifier")
 
-    allowed_contexts = {'none', 'title', 'body', 'title+body'}
+    allowed_contexts = {'none', 'title', 'body', 'title-hyphen', 'title+body'}
 
     if context not in allowed_contexts:
-        print("")
+        print(f"Context must be in {allowed_contexts}")
+
         sys.exit(1)
 
     if not output_dir:
@@ -53,6 +54,7 @@ def train_model(
 
     print("Tokenizing and formatting datasets...")
     my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
+
     train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)
     dev_dataset = dev_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
 
@@ -64,6 +66,9 @@ def train_model(
 
     train_dataset = format_dataset(train_dataset)
     dev_dataset = format_dataset(dev_dataset)
+
+    print("\n\n", "Sanity check")
+    print(tokenizer.decode(train_dataset[0]["input_ids"]))
 
     """
     Finally, train!

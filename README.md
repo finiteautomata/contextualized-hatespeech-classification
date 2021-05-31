@@ -44,6 +44,18 @@ do
     rm -Rf $output_dir
 done
 
+for i in {1..15}
+do
+    output_path="models/bert-hyphen-hate-speech-es_${i}/"
+    echo $output_path
+    results_dir="./results_hyphen/${i}"
+    echo $results_dir
+    context="title-hyphen"
+
+    CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context $context --output_path $output_path --epochs 10 --output_dir $results_dir
+    rm -Rf $results_dir
+done
+
 
 for i in {1..15}
 do
@@ -53,6 +65,8 @@ do
     CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context 'none' --output_path $model_path --epochs 10 --output_dir $output_dir
     rm -Rf $output_dir
 done
+
+
 
 ## Category
 
