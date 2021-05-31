@@ -23,6 +23,7 @@ torch = "*"
 pytest = "*"
 pandarallel = "*"
 emoji = "*"
+pysentimiento = {editable = true, path = "./pysentimiento"}
 
 [requires]
 python_version = "3.8"

@@ -1,0 +1,3 @@
+[submodule "pysentimiento"]
+	path = pysentimiento
+	url = git@github.com:finiteautomata/pysentimiento.git

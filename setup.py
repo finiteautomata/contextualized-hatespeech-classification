@@ -12,7 +12,7 @@ setup(
         "transformers==4.4.0",
         "datasets==1.4.1",
 	    "torch",
-        "emoji",
+        "pysentimiento==0.2.0",
         "pandarallel",
     ]
 )
