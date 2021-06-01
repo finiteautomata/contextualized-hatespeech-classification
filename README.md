@@ -44,7 +44,7 @@ do
     rm -Rf $output_dir
 done
 
-for i in {1..15}
+for i in {11..15}
 do
     output_path="models/bert-hyphen-hate-speech-es_${i}/"
     echo $output_path
@@ -52,7 +52,7 @@ do
     echo $results_dir
     context="title-hyphen"
 
-    CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context $context --output_path $output_path --epochs 10 --output_dir $results_dir
+    python bin/train_hate_classifier.py --context $context --output_path $output_path --epochs 10 --output_dir $results_dir
     rm -Rf $results_dir
 done
 
@@ -114,7 +114,7 @@ do
     output_dir="./evaluations/non-context-${i}.json"
     echo $model_path
     echo $output_dir
-    CUDA_VISIBLE_DEVICES=1 python bin/eval_hate_speech.py --context 'none' --model_name $model_path --output_path $output_dir
+    python bin/eval_hate_speech.py --context 'none' --model_name $model_path --output_path $output_dir
 done
 
 
@@ -129,7 +129,7 @@ do
     output_dir="./evaluations/context-${i}.json"
     echo $model_path
     echo $output_dir
-    CUDA_VISIBLE_DEVICES=1 python bin/eval_hate_speech.py --context 'title' --model_name $model_path --output_path $output_dir
+    python bin/eval_hate_speech.py --context 'title' --model_name $model_path --output_path $output_dir
 done
 
 ## Category
