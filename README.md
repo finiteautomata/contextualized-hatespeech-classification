@@ -44,7 +44,7 @@ do
     rm -Rf $output_dir
 done
 
-for i in {11..15}
+for i in {1..15}
 do
     output_path="models/bert-hyphen-hate-speech-es_${i}/"
     echo $output_path
@@ -130,6 +130,15 @@ do
     echo $model_path
     echo $output_dir
     python bin/eval_hate_speech.py --context 'title' --model_name $model_path --output_path $output_dir
+done
+
+for i in {1..15}
+do
+    model_path="models/bert-hyphen-hate-speech-es_${i}/"
+    output_path="evaluations/title-hyphen_${i}.json"
+    echo $model_path
+    echo $output_path
+    python bin/eval_hate_speech.py --context 'title-hyphen' --model_name $model_path --output_path $output_path
 done
 
 ## Category

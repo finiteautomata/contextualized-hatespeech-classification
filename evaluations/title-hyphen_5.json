@@ -56725,7 +56725,7 @@
         "test_macro_f1": 0.8025336226121449,
         "test_precision": 0.7350543478260869,
         "test_recall": 0.6021146355036171,
-        "test_runtime": 106.0462,
-        "test_samples_per_second": 106.963
+        "test_runtime": 106.7596,
+        "test_samples_per_second": 106.248
     }
 }
