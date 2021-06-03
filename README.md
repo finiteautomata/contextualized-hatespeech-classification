@@ -66,6 +66,15 @@ do
     rm -Rf $output_dir
 done
 
+for i in {1..15}
+do
+    model_path="models/bert-title-only-hate-speech-es_${i}/"
+    output_dir="./results-title-only/${i}"
+    echo $output_dir
+    python bin/train_hate_classifier.py --context 'title-only' --output_path $model_path --epochs 5 --output_dir $output_dir
+    rm -Rf $output_dir
+done
+
 
 
 ## Category
@@ -140,6 +149,8 @@ do
     echo $output_path
     python bin/eval_hate_speech.py --context 'title-hyphen' --model_name $model_path --output_path $output_path
 done
+
+
 
 ## Category
 

@@ -7,6 +7,7 @@ from transformers import (
 
 lengths = {
     'none': 128,
+    'title-only': 128,
     'title': 256,
     'title-hyphen': 256,
     'body': 512,
@@ -65,10 +66,10 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     ---------
 
     context: string
-        Type of allowed context. Options are ['none', 'title', 'body', 'title+body']
+        Type of allowed context. Options are ['none', 'title', 'title-only', 'body', 'title+body']
     """
 
-    valid_contexts = {'none', 'title', 'body', 'title-hyphen', 'title+body'}
+    valid_contexts = {'none', 'title', 'title-only', 'body', 'title-hyphen', 'title+body'}
 
     if context not in valid_contexts:
         raise ValueError(f"Invalid context. Must be one of {valid_contexts}")
@@ -97,8 +98,14 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
             batch['text'],
             [title + " - "+ body for title, body in zip(batch['title'],batch['body'])],
         ]
+    elif context == 'title-only':
+        tokenize_args = [
+            batch['title']
+        ]
     elif context == 'none':
-        tokenize_args = [batch['text']]
+        tokenize_args = [
+            batch['text']
+        ]
 
     if context_first:
         # Invert it

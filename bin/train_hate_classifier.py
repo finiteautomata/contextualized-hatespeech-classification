@@ -23,7 +23,7 @@ def train_model(
     print("*"*80)
     print("Training hate speech classifier")
 
-    allowed_contexts = {'none', 'title', 'body', 'title-hyphen', 'title+body'}
+    allowed_contexts = {'none', 'title-only', 'title', 'body', 'title-hyphen', 'title+body'}
 
     if context not in allowed_contexts:
         print(f"Context must be in {allowed_contexts}")
