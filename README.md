@@ -106,6 +106,15 @@ do
     CUDA_VISIBLE_DEVICES=1 python bin/train_category_classifier.py --context 'title+body' --output_path $model_path --epochs 5 --output_dir $output_dir --batch_size 8 --eval_batch_size 8
     rm -Rf $output_dir
 done
+
+for i in {1..15}
+do
+    model_path="models/bert-title-only-hate-category-es_${i}/"
+    output_dir="./results-title-only/${i}"
+    echo $output_dir
+    python bin/train_category_classifier.py --context 'title-only' --output_path $model_path --epochs 5 --output_dir $output_dir
+    rm -Rf $output_dir
+done
 ```
 
 ### Eval multiple times
@@ -150,6 +159,15 @@ do
     python bin/eval_hate_speech.py --context 'title-hyphen' --model_name $model_path --output_path $output_path
 done
 
+for i in {1..15}
+do
+    model_path="models/bert-title-only-hate-speech-es_${i}/"
+    output_path="evaluations/title-only_${i}.json"
+    echo $model_path
+    echo $output_path
+    python bin/eval_hate_speech.py --context 'title-only' --model_name $model_path --output_path $output_path
+done
+
 
 
 ## Category
@@ -190,5 +208,14 @@ do
     echo $model_path
     echo $output_dir
     python bin/eval_hate_category.py --context 'title+body' --model_name $model_path --output_path $output_dir
+done
+
+for i in {1..15}
+do
+    model_path="models/bert-title-only-hate-category-es_${i}/"
+    output_dir="./evaluations/title-only-category-${i}.json"
+    echo $model_path
+    echo $output_dir
+    python bin/eval_hate_category.py --context 'title-only' --model_name $model_path --output_path $output_dir
 done
 ```

@@ -9,7 +9,7 @@ from transformers import (
     Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast
 )
 from hatedetection import BertForSequenceMultiClassification, load_datasets, extended_hate_categories
-from hatedetection.training import tokenize
+from hatedetection.training import tokenize, lengths
 from hatedetection.preprocessing import special_tokens
 from hatedetection.metrics import compute_category_metrics
 
@@ -19,12 +19,6 @@ def load_model_and_tokenizer(model_name, context, max_length=None):
     Load model and tokenizer
     """
 
-    lengths = {
-        'none': 128,
-        'title': 256,
-        'body': 512,
-        'title+body': 512,
-    }
     if not max_length:
         max_length = lengths[context]
 
@@ -75,10 +69,9 @@ def train_category_classifier(
     """
     print("*"*80)
     print("Training hate speech category classifier")
-    allowed_contexts = {'none', 'title', 'body', 'title+body'}
 
-    if context not in allowed_contexts:
-        print("")
+    if context not in lengths.keys():
+        print(f"{context} must be in {lengths.keys()}")
         sys.exit(1)
 
     if not output_dir:
