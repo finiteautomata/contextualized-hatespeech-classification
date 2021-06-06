@@ -5,6 +5,7 @@ import os
 import fire
 import torch
 import sys
+import random
 from transformers import (
     Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast
 )
@@ -53,7 +54,7 @@ def load_model_and_tokenizer(model_name, context, max_length=None):
 def train_category_classifier(
     output_path, train_path=None, test_path=None, context='none',
     model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16, output_dir=None,
-    max_length=None, epochs=5, warmup_proportion=0.1,
+    max_length=None, epochs=5, warmup_proportion=0.1, add_negative_examples_proportion=None, random_seed=2021
     ):
 
     """
@@ -69,6 +70,8 @@ def train_category_classifier(
     """
     print("*"*80)
     print("Training hate speech category classifier")
+
+    random.seed(random_seed)
 
     if context not in lengths.keys():
         print(f"{context} must be in {lengths.keys()}")
@@ -86,10 +89,33 @@ def train_category_classifier(
 
     train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path, add_body=add_body)
 
-    train_dataset = train_dataset.filter(lambda x: x["HATEFUL"] > 0)
-    dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
-    test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
+
+
+    if add_negative_examples_proportion is None:
+        """
+        Only train and test on negative examples
+        """
+        train_dataset = train_dataset.filter(lambda x: x["HATEFUL"] > 0)
+        dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
+        test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
+
+    elif 0 < add_negative_examples_proportion < 1:
+
+        def keep_example(example):
+            return (example["HATEFUL"] > 0) or random.random() < add_negative_examples_proportion
+
+        train_dataset = train_dataset.filter(keep_example)
+        # dev_dataset = dev_dataset.filter(keep_example)
+        # Don't filter test!
+
+    else:
+        print(f"{add_negative_examples_proportion} must be between 0 and 1")
+        sys.exit(1)
+
     print("Done")
+    print(f"Train examples : {len(train_dataset):<5} (Hateful {sum(train_dataset['HATEFUL'])})")
+    print(f"Dev examples   : {len(dev_dataset):<5}   (Hateful {sum(dev_dataset['HATEFUL'])})")
+    print(f"Test examples  : {len(test_dataset):<5}  (Hateful {sum(test_dataset['HATEFUL'])})")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
