@@ -98,6 +98,17 @@ do
     rm -Rf $output_dir
 done
 
+
+for i in {6..10}
+do
+    model_path="models/bert-single-title-hate-category-es_${i}/"
+    output_dir="./results_contextualized/${i}"
+    echo $output_dir
+    python bin/train_category_classifier.py --context 'title' --output_path $model_path --epochs 5 --output_dir $output_dir --add_negative_examples_proportion 0.2
+    rm -Rf $output_dir
+done
+
+
 for i in {1..15}
 do
     model_path="models/bert-title-body-hate-category-es_${i}/"

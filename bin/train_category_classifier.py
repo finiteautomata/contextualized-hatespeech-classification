@@ -134,6 +134,7 @@ def train_category_classifier(
     test_dataset = test_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
 
 
+
     def format_dataset(dataset):
         def get_category_labels(examples):
             return {'labels': torch.Tensor([examples[cat] for cat in extended_hate_categories])}
@@ -144,6 +145,10 @@ def train_category_classifier(
     train_dataset = format_dataset(train_dataset)
     dev_dataset = format_dataset(dev_dataset)
     test_dataset = format_dataset(test_dataset)
+
+
+    print("\n\n", "Sanity check")
+    print(tokenizer.decode(train_dataset[0]["input_ids"]))
 
     """
     Finally, train!

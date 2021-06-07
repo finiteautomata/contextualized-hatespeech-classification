@@ -13,10 +13,14 @@ from hatedetection.training import (
     tokenize, lengths
 )
 from hatedetection.metrics import compute_category_metrics
+from sklearn.metrics import precision_recall_fscore_support
+
+
+
 
 
 def eval_hate_category(
-    model_name, output_path, context='none', eval_batch_size=16,
+    model_name, output_path=None, context='none', eval_batch_size=16, use_all=False, dev=False,
     ):
     """
     Evaluates a model
@@ -27,10 +31,13 @@ def eval_hate_category(
 
     print(f"Model name: {model_name}")
     print("Context: ", context)
-    _, _, test_dataset = load_datasets(add_body=True)
+    _, dev_dataset, test_dataset = load_datasets(add_body=True)
 
-    test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
+    if not use_all:
+        dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
+        test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
 
+    dataset = test_dataset if not dev else dev_dataset
     model = BertForSequenceMultiClassification.from_pretrained(model_name, num_labels=len(extended_hate_categories))
 
     model.eval()
@@ -40,7 +47,6 @@ def eval_hate_category(
     print("Tokenizing and formatting \n\n")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.model_max_length = lengths[context]
-    dataset = test_dataset
 
     dataset = dataset.map(
         lambda x: tokenize(tokenizer, x, context=context), batched=True, batch_size=eval_batch_size
@@ -48,7 +54,10 @@ def eval_hate_category(
 
     def format_dataset(dataset):
         def get_category_labels(examples):
-            return {'labels': torch.Tensor([examples[cat] for cat in extended_hate_categories])}
+            return {
+                'labels': torch.Tensor(
+                    [examples[cat] for cat in extended_hate_categories]),
+            }
         dataset = dataset.map(get_category_labels)
         dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
         return dataset
@@ -61,6 +70,24 @@ def eval_hate_category(
 
     print("Predicting")
 
+    def compute_extended_metrics(pred):
+        """
+        Add F1 for Task A
+        """
+        metrics = compute_category_metrics(pred)
+        hate_true = dataset["HATEFUL"]
+        hate_pred = ((pred.predictions[:, 1:] > 0).sum(axis=1) > 0).astype(int)
+
+        prec, recall, f1, _ = precision_recall_fscore_support(hate_true, hate_pred, average="binary")
+
+        metrics.update({
+            "hate_precision": prec,
+            "hate_recall": recall,
+            "hate_f1": f1,
+        })
+        return metrics
+
+
     training_args = TrainingArguments(
         output_dir=".",
         per_device_eval_batch_size=eval_batch_size,
@@ -70,7 +97,7 @@ def eval_hate_category(
     trainer = Trainer(
         model=model,
         args=training_args,
-        compute_metrics=compute_category_metrics,
+        compute_metrics=compute_extended_metrics,
     )
 
     preds = trainer.predict(dataset)
@@ -81,10 +108,14 @@ def eval_hate_category(
         "metrics": preds.metrics
     }
 
-    print(f"Saving at {output_path}")
+    for k, v in serialized["metrics"].items():
+        print(f"{k:<15} =  {v:.4f}")
 
-    with open(output_path, "w+") as f:
-        json.dump(serialized, f, indent=4)
+    if output_path:
+        print(f"Saving at {output_path}")
+
+        with open(output_path, "w+") as f:
+            json.dump(serialized, f, indent=4)
 
 
 
