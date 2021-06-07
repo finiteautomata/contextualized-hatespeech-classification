@@ -14,9 +14,13 @@ class BertForSequenceMultiClassification(BertPreTrainedModel):
     In fact, the only modification is the change of the loss! We use a BCEWith
     """
 
-    def __init__(self, config):
+    def __init__(self, config, pos_weight=None):
         """
         The same as BertForSequenceClassification
+
+        hateful_weight: tensor of shape (2) (default None)
+
+            If given, uses to manually rescale each
         """
         super().__init__(config)
         self.num_labels = config.num_labels
@@ -25,6 +29,7 @@ class BertForSequenceMultiClassification(BertPreTrainedModel):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
+        self.pos_weight = pos_weight
         self.init_weights()
 
     def forward(
@@ -70,7 +75,7 @@ class BertForSequenceMultiClassification(BertPreTrainedModel):
             """
             The only thing I change is here!
             """
-            loss_fct = BCEWithLogitsLoss()
+            loss_fct = BCEWithLogitsLoss(pos_weight=self.pos_weight)
             loss = loss_fct(logits, labels)
 
         if not return_dict:

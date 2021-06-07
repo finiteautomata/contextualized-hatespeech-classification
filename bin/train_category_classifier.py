@@ -3,6 +3,7 @@ Script to train hatespeech classifier
 """
 import os
 import fire
+from matplotlib import use
 import torch
 import sys
 import random
@@ -15,7 +16,7 @@ from hatedetection.preprocessing import special_tokens
 from hatedetection.metrics import compute_category_metrics
 
 
-def load_model_and_tokenizer(model_name, context, max_length=None):
+def load_model_and_tokenizer(model_name, context, max_length=None, class_weight=None):
     """
     Load model and tokenizer
     """
@@ -24,7 +25,8 @@ def load_model_and_tokenizer(model_name, context, max_length=None):
         max_length = lengths[context]
 
     model = BertForSequenceMultiClassification.from_pretrained(
-        model_name, return_dict=True, num_labels=len(extended_hate_categories)
+        model_name, return_dict=True, num_labels=len(extended_hate_categories),
+        pos_weight=class_weight,
     )
 
     model.train()
@@ -54,7 +56,7 @@ def load_model_and_tokenizer(model_name, context, max_length=None):
 def train_category_classifier(
     output_path, train_path=None, test_path=None, context='none',
     model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16, output_dir=None,
-    max_length=None, epochs=5, warmup_proportion=0.1, add_negative_examples_proportion=None, random_seed=2021
+    max_length=None, epochs=5, warmup_proportion=0.1, negative_examples_proportion=None, random_seed=2021, use_class_weight=False,
     ):
 
     """
@@ -91,7 +93,7 @@ def train_category_classifier(
 
 
 
-    if add_negative_examples_proportion is None:
+    if negative_examples_proportion is None:
         """
         Only train and test on negative examples
         """
@@ -99,17 +101,17 @@ def train_category_classifier(
         dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
         test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
 
-    elif 0 < add_negative_examples_proportion < 1:
+    elif 0 < negative_examples_proportion <= 1:
 
         def keep_example(example):
-            return (example["HATEFUL"] > 0) or random.random() < add_negative_examples_proportion
+            return (example["HATEFUL"] > 0) or random.random() < negative_examples_proportion
 
         train_dataset = train_dataset.filter(keep_example)
         # dev_dataset = dev_dataset.filter(keep_example)
         # Don't filter test!
 
     else:
-        print(f"{add_negative_examples_proportion} must be between 0 and 1")
+        print(f"{negative_examples_proportion} must be between 0 and 1")
         sys.exit(1)
 
     print("Done")
@@ -119,10 +121,14 @@ def train_category_classifier(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
+
+    class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight else None
+
 
     print("")
     print("Loading model and tokenizer... ", end="")
-    model, tokenizer = load_model_and_tokenizer(model_name, context, max_length)
+    model, tokenizer = load_model_and_tokenizer(model_name, context, max_length, class_weight=class_weight)
     print("Done")
 
 
