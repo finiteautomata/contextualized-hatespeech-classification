@@ -84,6 +84,8 @@ def train_category_classifier(
 
     print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
+    print(f"Negative examples: {negative_examples_proportion}")
+
     print("*"*80, end="\n"*3)
 
     print("Loading datasets... ", end="")
@@ -107,8 +109,7 @@ def train_category_classifier(
             return (example["HATEFUL"] > 0) or random.random() < negative_examples_proportion
 
         train_dataset = train_dataset.filter(keep_example)
-        # dev_dataset = dev_dataset.filter(keep_example)
-        # Don't filter test!
+        # Don't filter dev and test
 
     else:
         print(f"{negative_examples_proportion} must be between 0 and 1")
@@ -125,6 +126,7 @@ def train_category_classifier(
 
     class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight else None
 
+    print(f"Class weight: {class_weight}")
 
     print("")
     print("Loading model and tokenizer... ", end="")

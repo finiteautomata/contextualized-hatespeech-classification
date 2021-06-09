@@ -12,7 +12,7 @@ from hatedetection.model import BertForSequenceMultiClassification
 from hatedetection.training import (
     tokenize, lengths
 )
-from hatedetection.metrics import compute_category_metrics
+from hatedetection.metrics import compute_extended_category_metrics
 from sklearn.metrics import precision_recall_fscore_support
 
 
@@ -70,23 +70,6 @@ def eval_hate_category(
 
     print("Predicting")
 
-    def compute_extended_metrics(pred):
-        """
-        Add F1 for Task A
-        """
-        metrics = compute_category_metrics(pred)
-        hate_true = dataset["HATEFUL"]
-        hate_pred = ((pred.predictions[:, 1:] > 0).sum(axis=1) > 0).astype(int)
-
-        prec, recall, f1, _ = precision_recall_fscore_support(hate_true, hate_pred, average="binary")
-
-        metrics.update({
-            "hate_precision": prec,
-            "hate_recall": recall,
-            "hate_f1": f1,
-        })
-        return metrics
-
 
     training_args = TrainingArguments(
         output_dir=".",
@@ -97,7 +80,7 @@ def eval_hate_category(
     trainer = Trainer(
         model=model,
         args=training_args,
-        compute_metrics=compute_extended_metrics,
+        compute_metrics=lambda pred: compute_extended_category_metrics(dataset, pred),
     )
 
     preds = trainer.predict(dataset)

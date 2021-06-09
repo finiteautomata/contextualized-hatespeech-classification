@@ -55,3 +55,21 @@ def compute_category_metrics(pred):
     ret["mean_precision"] = torch.Tensor(precs).mean()
     ret["mean_recall"] = torch.Tensor(recalls).mean()
     return ret
+
+
+def compute_extended_category_metrics(dataset, pred):
+    """
+    Add F1 for Task A
+    """
+    metrics = compute_category_metrics(pred)
+    hate_true = dataset["HATEFUL"]
+    hate_pred = ((pred.predictions[:, 1:] > 0).sum(axis=1) > 0).astype(int)
+
+    prec, recall, f1, _ = precision_recall_fscore_support(hate_true, hate_pred, average="binary")
+
+    metrics.update({
+        "hate_precision": prec,
+        "hate_recall": recall,
+        "hate_f1": f1,
+    })
+    return metrics

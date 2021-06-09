@@ -55,10 +55,15 @@ do
     rm -Rf $output_dir
 done
 
-for i in {5..10}
+for i in {1..15}
 do
     model_path="models/bert-single-title-weight_${i}/"
     output_dir="./results_single_weight/${i}"
+
+    if test -f "$model_path"; then
+      echo "$model_path exists. -- continue"
+      continue
+    fi
     echo $output_dir
     python bin/train_category_classifier.py --context title --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
     rm -Rf $output_dir
@@ -186,15 +191,20 @@ done
 for model_path in models/*-single-title*
 do
     base=`basename "$model_path"`
-    output_path="evaluations/dev/${base#bert-}.json"
+    output_path="evaluations/${base#bert-}.json"
+    if test -f "$output_path"; then
+      echo "$output_path exists. -- continue"
+      continue
+    fi
     context="none"
     if [[ "$model_path" == *"title-body"* ]]; then
         context="title-body"
     elif [[ "$model_path" == *"title"* ]]; then
         context="title"
     fi
+
     echo "Context = ${context}"
-    python bin/eval_hate_category.py --context "$context" --model_name $model_path --output_path $output_path --use_all --dev
+    python bin/eval_hate_category.py --context "$context" --model_name $model_path --output_path $output_path --use_all
 done
 
 
