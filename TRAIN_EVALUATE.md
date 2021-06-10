@@ -46,6 +46,17 @@ done
 ## Single
 
 
+for i in {1..10}
+do
+    model_path="models/bert-single-title_${i}/"
+    output_dir="./results_single_no_weight/${i}"
+    echo $output_dir
+    context="none"
+    python bin/train_category_classifier.py --context $context --output_path $model_path --epochs 10 --negative_examples_proportion 1.0
+    rm -Rf $output_dir
+done
+
+
 for i in {4..9}
 do
     model_path="models/bert-single-title_${i}/"
@@ -70,6 +81,19 @@ do
 done
 
 
+for i in {1..15}
+do
+    model_path="models/bert-single-no-context-weight_${i}/"
+    output_dir="./results/no-context-weight-${i}"
+
+    if test -f "$model_path"; then
+      echo "$model_path exists. -- continue"
+      continue
+    fi
+    echo $output_dir
+    python bin/train_category_classifier.py --context "none" --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
+    rm -Rf $output_dir
+done
 
 for i in {4..9}
 do
@@ -188,7 +212,7 @@ done
 
 ## Single
 
-for model_path in models/*-single-title*
+for model_path in models/*-single-*
 do
     base=`basename "$model_path"`
     output_path="evaluations/${base#bert-}.json"
@@ -201,8 +225,11 @@ do
         context="title-body"
     elif [[ "$model_path" == *"title"* ]]; then
         context="title"
+    elif [[ "$model_path" == *"no-context"* ]]; then
+        context="none"
     fi
 
+    echo "=============================================="
     echo "Context = ${context}"
     python bin/eval_hate_category.py --context "$context" --model_name $model_path --output_path $output_path --use_all
 done
