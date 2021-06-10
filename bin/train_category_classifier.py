@@ -13,7 +13,7 @@ from transformers import (
 from hatedetection import BertForSequenceMultiClassification, load_datasets, extended_hate_categories
 from hatedetection.training import tokenize, lengths
 from hatedetection.preprocessing import special_tokens
-from hatedetection.metrics import compute_category_metrics
+from hatedetection.metrics import compute_extended_category_metrics
 
 
 def load_model_and_tokenizer(model_name, context, max_length=None, class_weight=None):
@@ -183,7 +183,7 @@ def train_category_classifier(
     trainer = Trainer(
         model=model,
         args=training_args,
-        compute_metrics=compute_category_metrics,
+        compute_metrics=lambda pred: compute_extended_category_metrics(dev_dataset, pred),
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
     )
