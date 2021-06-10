@@ -4,6 +4,7 @@ Script to train hatespeech classifier
 import os
 import fire
 from matplotlib import use
+import tempfile
 import torch
 import sys
 import random
@@ -71,7 +72,7 @@ def train_category_classifier(
         Path to test data
     """
     print("*"*80)
-    print("Training hate speech category classifier")
+    print(f"Training hate speech category classifier -- {output_path}")
 
     random.seed(random_seed)
 
@@ -80,11 +81,12 @@ def train_category_classifier(
         sys.exit(1)
 
     if not output_dir:
-        output_dir = os.path.join("results", output_path)
+        output_dir = tempfile.TemporaryDirectory().name
 
     print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
     print(f"Negative examples: {negative_examples_proportion}")
+    print(f"Results dir: {output_dir}")
 
     print("*"*80, end="\n"*3)
 

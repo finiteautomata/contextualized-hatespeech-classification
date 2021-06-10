@@ -45,74 +45,35 @@ done
 
 ## Single
 
-
-for i in {1..10}
+###
+### No context
+###
+for i in {1..15}
 do
-    model_path="models/bert-single-title_${i}/"
-    output_dir="./results_single_no_weight/${i}"
-    echo $output_dir
+    model_path="models/bert-single-no-context-weight_${i}/"
     context="none"
-    python bin/train_category_classifier.py --context $context --output_path $model_path --epochs 10 --negative_examples_proportion 1.0
-    rm -Rf $output_dir
+    if [ -d "$model_path" ]; then
+      echo "$model_path exists. -- continue"
+      continue
+    fi
+    python bin/train_category_classifier.py --context $context --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
 done
 
-
-for i in {4..9}
-do
-    model_path="models/bert-single-title_${i}/"
-    output_dir="./results_single_no_weight/${i}"
-    echo $output_dir
-    python bin/train_category_classifier.py --context title --output_path $model_path --epochs 10 --negative_examples_proportion 1.0
-    rm -Rf $output_dir
-done
+###
+### Title
+###
 
 for i in {1..15}
 do
     model_path="models/bert-single-title-weight_${i}/"
-    output_dir="./results_single_weight/${i}"
-
-    if test -f "$model_path"; then
+    context="title"
+    if [ -d "$model_path" ]; then
       echo "$model_path exists. -- continue"
       continue
     fi
-    echo $output_dir
-    python bin/train_category_classifier.py --context title --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
-    rm -Rf $output_dir
+    python bin/train_category_classifier.py --context $context --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
 done
 
-
-for i in {1..15}
-do
-    model_path="models/bert-single-no-context-weight_${i}/"
-    output_dir="./results/no-context-weight-${i}"
-
-    if test -f "$model_path"; then
-      echo "$model_path exists. -- continue"
-      continue
-    fi
-    echo $output_dir
-    python bin/train_category_classifier.py --context "none" --output_path $model_path --epochs 10 --negative_examples_proportion 1.0 --use_class_weight
-    rm -Rf $output_dir
-done
-
-for i in {4..9}
-do
-    model_path="models/bert-single-title-es_${i}/"
-    output_dir="./results_contextualized/${i}"
-    echo $output_dir
-    python bin/train_category_classifier.py --context 'title' --output_path $model_path --epochs 5 --output_dir $output_dir --negative_examples_proportion 0.2
-    rm -Rf $output_dir
-done
-
-
-for i in {1..10}
-do
-    model_path="models/bert-single-title-body-hate-category-es_${i}/"
-    output_dir="./results_contextualized/${i}"
-    echo $output_dir
-    python bin/train_category_classifier.py --context 'title+body' --output_path $model_path --epochs 5 --output_dir $output_dir --add_negative_examples_proportion 0.2 --batch_size 8 --eval_batch_size 8
-    rm -Rf $output_dir
-done
 
 ## Category
 
