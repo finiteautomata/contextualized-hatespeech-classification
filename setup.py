@@ -12,7 +12,7 @@ setup(
         "transformers==4.4.0",
         "datasets==1.4.1",
 	    "torch",
-        "pysentimiento==0.2.0",
+        "pysentimiento==0.2.2",
         "pandarallel",
     ]
 )
