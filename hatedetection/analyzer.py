@@ -38,39 +38,20 @@ class HateSpeechAnalyzer:
         Convenient method to construct contextualized model
         """
         return cls(
-            "finiteautomata/bert-contextualized-hate-speech-es",
-            "finiteautomata/bert-contextualized-hate-category-es",
+            "finiteautomata/beto-fine-grained-hatespeech-news",
             use_context=True
         )
 
-
-
-    @classmethod
-    def load_noncontextualized_model(cls):
-        """
-        Convenient method to construct noncontextualized model
-        """
-        return cls(
-            "finiteautomata/bert-non-contextualized-hate-speech-es",
-            "finiteautomata/bert-non-contextualized-hate-category-es",
-            use_context=False
-        )
-
-
-    def __init__(self, base_model_name, category_model_name, use_context=False):
+    def __init__(self, base_model_name, use_context=False, device="cpu"):
         """
         Constructor for HateSpeechAnalyzer class
         """
         self.tokenizer = AutoTokenizer.from_pretrained(base_model_name)
-        self.base_model = AutoModelForSequenceClassification.from_pretrained(
-            base_model_name, num_labels=2,
+        self.base_model = BertForSequenceMultiClassification.from_pretrained(
+            base_model_name, num_labels=len(extended_hate_categories)
         )
 
-
-        self.category_model = BertForSequenceMultiClassification.from_pretrained(
-            category_model_name, num_labels=len(extended_hate_categories)
-        )
-
+        self.base_model = self.base_model.to(device)
         self.use_context = use_context
         max_length = 256 if use_context else 128
 
@@ -83,30 +64,27 @@ class HateSpeechAnalyzer:
         """
         device = self.base_model.device
 
-        args = []
-
-
+        args = [preprocess_tweet(sentence)]
         # If context, prepend it
         if context and self.use_context:
             args.append(context)
-        args.append(preprocess_tweet(sentence))
 
         idx = self.tokenizer.encode(*args)
         # Reshape to be (1, L) and send to model d
         idx = torch.LongTensor(idx).view(1, -1).to(device)
 
         outs = self.base_model(idx)
-        hateful = bool(outs.logits.argmax().item())
+
+        probas = torch.sigmoid(outs.logits[0]).detach().cpu().numpy()
+
+        hateful = (probas[1:] > 0.5).sum()
 
         if hateful:
             """
             Look for categories
             """
-            category_output = self.category_model(idx)
-            category_output = category_output.logits.detach().cpu().numpy()[0]
-
             # If logit of cat is > 0 this means sigmoid(logit) > 0.5.
-            categories = [cat for cat, out in list(zip(extended_hate_categories, category_output > 0)) if out]
+            categories = [cat for cat, out in list(zip(extended_hate_categories, probas > 0.5)) if out]
 
             calls_to_action = "CALLS" in categories
             if calls_to_action:
