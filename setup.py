@@ -9,7 +9,8 @@ setup(
     packages=["hatedetection"],
     test_suite="tests",
     install_requires=[
-        "transformers==4.4.0",
+        "transformers==4.6.1",
+        "tokenizers==0.10.1",
         "datasets==1.4.1",
 	    "torch",
         "pysentimiento==0.2.2",
