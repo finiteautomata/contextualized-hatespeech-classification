@@ -9,6 +9,7 @@ jupyterlab-widgets = "*"
 ipdb = "*"
 sentence-transformers = "*"
 umap-learn = "*"
+ijson = "*"
 
 [packages]
 transformers = "*"
