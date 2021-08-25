@@ -122,6 +122,12 @@ def predict_unlabeled_data(path, output_dir, eval_batch_size=16, comments_batch_
                 data = []
                 batch_num += 1
 
+    if len(data) > 0:
+        output_path = os.path.join(output_dir, f"{batch_num}.csv")
+        df = process_comments(model, tokenizer, data, batch_size=eval_batch_size)
+
+        df.to_csv(output_path, columns=["id"] + extended_hate_categories)
+
     print(num_comments, " comments processed")
 
 

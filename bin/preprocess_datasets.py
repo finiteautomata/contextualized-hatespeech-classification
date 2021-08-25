@@ -35,16 +35,16 @@ def preprocess_datasets(train_path=None, test_path=None):
 
     for articles in [train_articles, test_articles]:
         for article in tqdm(articles):
-            comments = [t["text"] for t in article["comments"]]
+            comments = [t["original_text"] for t in article["comments"]]
 
-            full_texts = [article["title"], article["body"]] + comments
+            full_texts = [article["title"], article["body"], article["tweet_text"]] + comments
             processed_text = pool.map(preprocess_tweet, full_texts)
 
             article["title"] = processed_text[0]
             article["body"] = processed_text[1]
+            article["tweet"] = processed_text[2]
 
-            for comm, val in zip(article["comments"], processed_text[2:]):
-                comm["original_text"] = comm["text"]
+            for comm, val in zip(article["comments"], processed_text[3:]):
                 comm["text"] = val
 
     """
