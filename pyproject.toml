@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "hatedetection"
+version = "0.1.0"
+description = ""
+authors = ["Juan Manuel Pérez <jmperez.85@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+transformers = "^4.9.2"
+pysentimiento = "^0.2.5"
+jupyter = "^1.0.0"
+jupyterlab = "^3.1.9"
+torch = "1.9.0"
+matplotlib = "^3.4.3"
+seaborn = "^0.11.2"
+datasets = "^1.11.0"
+pytest = "^6.2.4"
+pandarallel = "^1.5.2"
+
+[tool.poetry.dev-dependencies]
+ipython = "^7.26.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
