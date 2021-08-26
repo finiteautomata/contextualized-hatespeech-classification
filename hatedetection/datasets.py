@@ -29,7 +29,7 @@ def serialize(article, comment, add_body):
 
 
 
-def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, preprocess=False):
+def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, preprocess=True):
     """
     Load and return datasets
 
@@ -64,11 +64,11 @@ def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, p
     """
 
     if preprocess:
-        import pandarallel
+        from pandarallel import pandarallel
         pandarallel.initialize()
 
         for df in [train_df, dev_df, test_df]:
-            df["text"] = df["text"].parallel_apply(preprocess_tweet)
+            df["text"] = df["original_text"].parallel_apply(preprocess_tweet)
             df["title"] = df["title"].parallel_apply(preprocess_tweet)
             if add_body:
                 """

@@ -1,3 +1,4 @@
+from torch.nn import BCEWithLogitsLoss
 from .metrics import compute_hate_metrics
 from .preprocessing import special_tokens
 from transformers import (
@@ -13,6 +14,54 @@ lengths = {
     'body': 512,
     'title+body': 512,
 }
+
+
+def load_tokenizer(model_name, max_length, model=None, tokenizer_class=AutoTokenizer):
+    tokenizer = tokenizer_class.from_pretrained(
+        model_name,
+        never_split=special_tokens
+    )
+    vocab = tokenizer.get_vocab()
+    new_tokens_to_add = [tok for tok in special_tokens if tok not in vocab]
+
+    if new_tokens_to_add:
+        tokenizer.add_tokens(new_tokens_to_add)
+        if model:
+            model.resize_token_embeddings(len(tokenizer))
+
+    tokenizer.model_max_length = max_length
+    return tokenizer
+
+def load_model_and_tokenizer(model_name, num_labels, device, add_tokens=special_tokens, max_length=128):
+    """
+    Load model and tokenizer
+    """
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_name, return_dict=True, num_labels=num_labels
+    )
+
+
+    model = model.to(device)
+    model.train()
+    tokenizer = load_tokenizer(model_name, max_length, model=model)
+
+    return model, tokenizer
+
+
+class MultiLabelTrainer(Trainer):
+    def __init__(self, class_weight, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_weight = class_weight
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        loss_fct = BCEWithLogitsLoss(pos_weight=self.class_weight)
+        loss = loss_fct(logits, labels)
+        return (loss, outputs) if return_outputs else loss
+
 
 def load_hatespeech_model_and_tokenizer(model_name, context, max_length=None):
     """

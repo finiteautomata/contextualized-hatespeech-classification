@@ -3,61 +3,26 @@ Script to train hatespeech classifier
 """
 import os
 import fire
+import tempfile
 from matplotlib import use
 import tempfile
 import torch
 import sys
 import random
 from transformers import (
-    Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast
+    Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast, DataCollatorWithPadding
 )
 from hatedetection import BertForSequenceMultiClassification, load_datasets, extended_hate_categories
-from hatedetection.training import tokenize, lengths
-from hatedetection.preprocessing import special_tokens
+from hatedetection.training import tokenize, lengths, load_model_and_tokenizer, MultiLabelTrainer, lengths
 from hatedetection.metrics import compute_extended_category_metrics
-
-
-def load_model_and_tokenizer(model_name, context, max_length=None, class_weight=None):
-    """
-    Load model and tokenizer
-    """
-
-    if not max_length:
-        max_length = lengths[context]
-
-    model = BertForSequenceMultiClassification.from_pretrained(
-        model_name, return_dict=True, num_labels=len(extended_hate_categories),
-        pos_weight=class_weight,
-    )
-
-    model.train()
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokenizer.model_max_length = max_length
-
-    vocab = tokenizer.get_vocab()
-    new_tokens_to_add = [tok for tok in special_tokens if tok not in tokenizer.get_vocab()]
-
-    if new_tokens_to_add:
-        """
-        TODO: Perdoname Wilkinson, te he fallado
-
-        Hay una interfaz diferente acá, no entiendo bien por qué
-        """
-        if type(tokenizer) is BertTokenizerFast:
-            tokenizer.add_special_tokens({'additional_special_tokens': new_tokens_to_add})
-        else:
-            tokenizer.add_special_tokens(new_tokens_to_add)
-        model.resize_token_embeddings(len(tokenizer))
-
-    return model, tokenizer
 
 
 
 def train_category_classifier(
     output_path, train_path=None, test_path=None, context='none',
-    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=32, eval_batch_size=16, output_dir=None,
-    max_length=None, epochs=5, warmup_proportion=0.1, negative_examples_proportion=None, random_seed=2021, use_class_weight=False,
+    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=16, eval_batch_size=16, output_dir=None,
+    accumulation_steps=2, max_length=None, epochs=5, warmup_ratio=0.1, negative_examples_proportion=1,
+    random_seed=2021, use_class_weight=False, use_dynamic_padding=True,
     ):
 
     """
@@ -75,10 +40,17 @@ def train_category_classifier(
     print(f"Training hate speech category classifier -- {output_path}")
 
     random.seed(random_seed)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
 
     if context not in lengths.keys():
         print(f"{context} must be in {lengths.keys()}")
         sys.exit(1)
+
+    model, tokenizer = load_model_and_tokenizer(
+        model_name, num_labels=len(extended_hate_categories), device=device,
+        max_length=lengths[context],
+    )
 
     if not output_dir:
         output_dir = tempfile.TemporaryDirectory().name
@@ -91,16 +63,21 @@ def train_category_classifier(
     print("*"*80, end="\n"*3)
 
     print("Loading datasets... ", end="")
+
+
     add_body = True if "body" in context else False
 
-    train_dataset, dev_dataset, test_dataset = load_datasets(train_path, test_path, add_body=add_body)
+    train_dataset, dev_dataset, test_dataset = load_datasets(
+        train_path, test_path, add_body=add_body
+    )
 
 
+    """
+    # Don't do this for the time being
 
     if negative_examples_proportion is None:
-        """
-        Only train and test on negative examples
-        """
+
+        #Only train and test on negative examples
         train_dataset = train_dataset.filter(lambda x: x["HATEFUL"] > 0)
         dev_dataset = dev_dataset.filter(lambda x: x["HATEFUL"] > 0)
         test_dataset = test_dataset.filter(lambda x: x["HATEFUL"] > 0)
@@ -108,7 +85,7 @@ def train_category_classifier(
     elif 0 < negative_examples_proportion <= 1:
 
         def keep_example(example):
-            return (example["HATEFUL"] > 0) or random.random() < negative_examples_proportion
+            return (example["HATEFUL"] > 0) or random.random() <= negative_examples_proportion
 
         train_dataset = train_dataset.filter(keep_example)
         # Don't filter dev and test
@@ -116,13 +93,12 @@ def train_category_classifier(
     else:
         print(f"{negative_examples_proportion} must be between 0 and 1")
         sys.exit(1)
-
+    """
     print("Done")
     print(f"Train examples : {len(train_dataset):<5} (Hateful {sum(train_dataset['HATEFUL'])})")
     print(f"Dev examples   : {len(dev_dataset):<5}   (Hateful {sum(dev_dataset['HATEFUL'])})")
     print(f"Test examples  : {len(test_dataset):<5}  (Hateful {sum(test_dataset['HATEFUL'])})")
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
 
@@ -132,25 +108,29 @@ def train_category_classifier(
 
     print("")
     print("Loading model and tokenizer... ", end="")
-    model, tokenizer = load_model_and_tokenizer(model_name, context, max_length, class_weight=class_weight)
     print("Done")
 
+    padding = False if use_dynamic_padding else 'max_length'
 
-    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context)
+    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context, padding=padding)
 
     print("Tokenizing and formatting datasets...")
     train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)
     dev_dataset = dev_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
     test_dataset = test_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
 
-
-
     def format_dataset(dataset):
         def get_category_labels(examples):
             return {'labels': torch.Tensor([examples[cat] for cat in extended_hate_categories])}
         dataset = dataset.map(get_category_labels)
+
+        if use_dynamic_padding:
+            return dataset
+
         dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
         return dataset
+
+    data_collator = DataCollatorWithPadding(tokenizer, padding="longest") if use_dynamic_padding else None
 
     train_dataset = format_dataset(train_dataset)
     dev_dataset = format_dataset(dev_dataset)
@@ -166,30 +146,36 @@ def train_category_classifier(
 
     print("\n"*3, "Training...")
 
-    total_steps = (epochs * len(train_dataset)) // batch_size
-    warmup_steps = int(warmup_proportion * total_steps)
+
+    output_path = tempfile.mkdtemp()
+
     training_args = TrainingArguments(
-        output_dir=output_dir,
+        output_dir=output_path,
         num_train_epochs=epochs,
+        gradient_accumulation_steps = accumulation_steps,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        warmup_steps=warmup_steps,
+        warmup_ratio=warmup_ratio,
         evaluation_strategy="epoch",
+        save_strategy="epoch",
         do_eval=False,
         weight_decay=0.01,
         logging_dir='./logs',
         load_best_model_at_end=True,
         metric_for_best_model="mean_f1",
+        group_by_length=True,
     )
 
-    trainer = Trainer(
+
+    trainer = MultiLabelTrainer(
         model=model,
         args=training_args,
+        class_weight=class_weight,
         compute_metrics=lambda pred: compute_extended_category_metrics(dev_dataset, pred),
         train_dataset=train_dataset,
         eval_dataset=dev_dataset,
+        data_collator=data_collator,
     )
-
     trainer.train()
     """
     Evaluate

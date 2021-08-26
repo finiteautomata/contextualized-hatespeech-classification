@@ -75,6 +75,25 @@ do
 done
 
 
+for i in {1..15}
+do
+    model_path="models/bert-ft10k-single-title-${i}/"
+    model_name="models/beto-cased-news-10k"
+    context="title"
+    if [ -d "$model_path" ]; then
+      echo "$model_path exists. -- continue"
+      continue
+    fi
+    python bin/train_category_classifier.py \
+        --context $context \
+        --model_name $model_name \
+        --output_path $model_path \
+        --epochs 10 \
+        --negative_examples_proportion 1.0 \
+        --use_class_weight
+done
+
+
 ## Category
 
 for i in {1..15}
