@@ -123,7 +123,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     if context not in valid_contexts:
         raise ValueError(f"Invalid context. Must be one of {valid_contexts}")
 
-    kwargs = { 'padding': 'max_length', 'truncation': truncation }
+    kwargs = { 'padding': padding, 'truncation': truncation }
 
     if context == "title-hyphen":
         """

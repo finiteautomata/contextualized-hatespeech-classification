@@ -2,6 +2,15 @@
 
 ## Train
 
+
+```
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/train_finegrained.py --output_path models/test \
+    --model_name $model_name \
+    --batch_size 32 --eval_batch_size 32 --accumulation_steps 1 \
+    --context 'none' \
+    --use_class_weight
+
 ```bash
 for i in {1..15}
 do

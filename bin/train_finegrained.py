@@ -20,8 +20,10 @@ from hatedetection.metrics import compute_extended_category_metrics
 
 def train_category_classifier(
     output_path, train_path=None, test_path=None, context='none',
-    model_name = 'dccuchile/bert-base-spanish-wwm-cased', batch_size=16, eval_batch_size=16, output_dir=None,
-    accumulation_steps=2, max_length=None, epochs=5, warmup_ratio=0.1, negative_examples_proportion=1,
+    model_name = 'dccuchile/bert-base-spanish-wwm-cased',
+    batch_size=32, eval_batch_size=32, output_dir=None,
+    accumulation_steps=1, max_length=None, epochs=5, warmup_ratio=0.1,
+    negative_examples_proportion=1,
     random_seed=2021, use_class_weight=False, use_dynamic_padding=True,
     ):
 
@@ -37,7 +39,7 @@ def train_category_classifier(
         Path to test data
     """
     print("*"*80)
-    print(f"Training hate speech category classifier -- {output_path}")
+    print(f"Training hate speech fine grained classifier -- {output_path}")
 
     random.seed(random_seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -57,7 +59,7 @@ def train_category_classifier(
 
     print(f"Uses context: {context}")
     print(f"Tokenizer max length: {max_length}")
-    print(f"Negative examples: {negative_examples_proportion}")
+    #print(f"Negative examples: {negative_examples_proportion}")
     print(f"Results dir: {output_dir}")
 
     print("*"*80, end="\n"*3)
@@ -140,6 +142,12 @@ def train_category_classifier(
     print("\n\n", "Sanity check")
     print(tokenizer.decode(train_dataset[0]["input_ids"]))
 
+    print(
+        sorted(
+            set(len(x) for x in train_dataset["input_ids"])
+        )
+    )
+
     """
     Finally, train!
     """
@@ -152,7 +160,7 @@ def train_category_classifier(
     training_args = TrainingArguments(
         output_dir=output_path,
         num_train_epochs=epochs,
-        gradient_accumulation_steps = accumulation_steps,
+        gradient_accumulation_steps=accumulation_steps,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=eval_batch_size,
         warmup_ratio=warmup_ratio,
