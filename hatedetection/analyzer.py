@@ -1,5 +1,4 @@
 import torch
-from hatedetection import BertForSequenceMultiClassification
 from hatedetection.preprocessing import preprocess_tweet
 from hatedetection.categories import extended_hate_categories
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -47,7 +46,7 @@ class HateSpeechAnalyzer:
         Constructor for HateSpeechAnalyzer class
         """
         self.tokenizer = AutoTokenizer.from_pretrained(base_model_name)
-        self.base_model = BertForSequenceMultiClassification.from_pretrained(
+        self.base_model = AutoModelForSequenceClassification.from_pretrained(
             base_model_name, num_labels=len(extended_hate_categories)
         )
 

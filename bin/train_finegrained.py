@@ -4,31 +4,29 @@ Script to train hatespeech classifier
 import os
 import fire
 import tempfile
-from matplotlib import use
 import tempfile
 import torch
 import sys
 import random
 from transformers import (
-    Trainer, TrainingArguments, AutoTokenizer, BertTokenizerFast, DataCollatorWithPadding
+    TrainingArguments, DataCollatorWithPadding, Trainer
 )
-from hatedetection import BertForSequenceMultiClassification, load_datasets, extended_hate_categories
+from hatedetection import load_datasets, extended_hate_categories
 from hatedetection.training import tokenize, lengths, load_model_and_tokenizer, MultiLabelTrainer, lengths
 from hatedetection.metrics import compute_extended_category_metrics
 
 
 
-def train_category_classifier(
+def train_finegrained(
     output_path, train_path=None, test_path=None, context='none',
     model_name = 'dccuchile/bert-base-spanish-wwm-cased',
     batch_size=32, eval_batch_size=32, output_dir=None,
     accumulation_steps=1, max_length=None, epochs=5, warmup_ratio=0.1,
-    negative_examples_proportion=1,
     random_seed=2021, use_class_weight=False, use_dynamic_padding=True,
     ):
 
     """
-    Train and save hatespeech classifier
+    Train and save fine-grained classifier
 
     Arguments:
     ----------
@@ -188,15 +186,31 @@ def train_category_classifier(
     """
     Evaluate
     """
-    trainer.evaluate(dev_dataset)
+
 
     print("\n"*3, "Saving...")
 
     trainer.save_model(output_path)
     tokenizer.save_pretrained(output_path)
 
+    eval_training_args = TrainingArguments(
+        output_dir=".",
+        per_device_eval_batch_size=eval_batch_size,
+    )
+
+
+    eval_trainer = Trainer(
+        model=trainer.model,
+        args=eval_training_args,
+        compute_metrics=lambda pred: compute_extended_category_metrics(test_dataset, pred),
+        data_collator=data_collator,
+    )
+
+    test_results = eval_trainer.evaluate(test_dataset)
+    for k, v in test_results.items():
+        print(f"{k} = {v:.4f}")
     print(f"Models saved at {output_path}")
 
 if __name__ == '__main__':
-    fire.Fire(train_category_classifier)
+    fire.Fire(train_finegrained)
 
