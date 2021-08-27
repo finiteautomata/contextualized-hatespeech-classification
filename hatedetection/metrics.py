@@ -61,6 +61,7 @@ def compute_extended_category_metrics(dataset, pred):
     """
     Add F1 for Task A
     """
+
     metrics = compute_category_metrics(pred)
     hate_true = dataset["HATEFUL"]
     hate_pred = ((pred.predictions[:, 1:] > 0).sum(axis=1) > 0).astype(int)

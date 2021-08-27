@@ -1,10 +1,24 @@
 from torch.nn import BCEWithLogitsLoss
 from .metrics import compute_hate_metrics
 from .preprocessing import special_tokens
+import torch
 from transformers import (
     BertTokenizerFast, TrainingArguments, Trainer,
     AutoModelForSequenceClassification, AutoTokenizer
 )
+import os
+import fire
+import tempfile
+import tempfile
+import torch
+import sys
+import random
+from transformers import (
+    TrainingArguments, DataCollatorWithPadding, Trainer
+)
+from .categories import extended_hate_categories
+from .metrics import compute_extended_category_metrics
+
 
 lengths = {
     'none': 128,
@@ -199,3 +213,118 @@ def train_hatespeech_classifier(
     trainer.train()
 
     return trainer, dev_dataset
+
+
+def train_finegrained(
+    model, tokenizer, train_dataset, dev_dataset, test_dataset, context,
+    batch_size=32, eval_batch_size=32,
+    accumulation_steps=1, epochs=5, warmup_ratio=0.1,
+    use_class_weight=False, use_dynamic_padding=True,
+    ):
+
+    """
+    Train fine-grained classifier
+
+    Arguments:
+    ----------
+
+    train_path:
+        Path to training data
+    test_path:
+        Path to test data
+
+    Returns:
+    --------
+
+    trainer: transformers.Trainer
+    """
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
+
+    class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight else None
+
+    print(f"Class weight: {class_weight}")
+
+    print("")
+    print("Loading model and tokenizer... ", end="")
+    print("Done")
+
+    padding = False if use_dynamic_padding else 'max_length'
+
+    my_tokenize = lambda batch: tokenize(tokenizer, batch, context=context, padding=padding)
+
+    print("Tokenizing and formatting datasets...")
+    train_dataset = train_dataset.map(my_tokenize, batched=True, batch_size=batch_size)
+    dev_dataset = dev_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
+    test_dataset = test_dataset.map(my_tokenize, batched=True, batch_size=eval_batch_size)
+
+    def format_dataset(dataset):
+        def get_category_labels(examples):
+            return {'labels': torch.Tensor([examples[cat] for cat in extended_hate_categories])}
+        dataset = dataset.map(get_category_labels)
+
+        if use_dynamic_padding:
+            return dataset
+
+        dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+        return dataset
+
+    data_collator = DataCollatorWithPadding(tokenizer, padding="longest") if use_dynamic_padding else None
+
+    train_dataset = format_dataset(train_dataset)
+    dev_dataset = format_dataset(dev_dataset)
+    test_dataset = format_dataset(test_dataset)
+
+
+    print("\n\n", "Sanity check")
+    print(tokenizer.decode(train_dataset[0]["input_ids"]))
+
+    print(
+        sorted(
+            set(len(x) for x in train_dataset["input_ids"])
+        )
+    )
+
+    """
+    Finally, train!
+    """
+
+    print("\n"*3, "Training...")
+
+
+    output_path = tempfile.mkdtemp()
+
+    training_args = TrainingArguments(
+        output_dir=output_path,
+        num_train_epochs=epochs,
+        gradient_accumulation_steps=accumulation_steps,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=eval_batch_size,
+        warmup_ratio=warmup_ratio,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        do_eval=False,
+        weight_decay=0.01,
+        logging_dir='./logs',
+        load_best_model_at_end=True,
+        metric_for_best_model="mean_f1",
+        group_by_length=True,
+    )
+
+
+    trainer = MultiLabelTrainer(
+        model=model,
+        args=training_args,
+        class_weight=class_weight,
+        compute_metrics=lambda pred: compute_extended_category_metrics(dev_dataset, pred),
+        train_dataset=train_dataset,
+        eval_dataset=dev_dataset,
+        data_collator=data_collator,
+    )
+    trainer.train()
+    """
+    Evaluate
+    """
+
+    return trainer, test_dataset
