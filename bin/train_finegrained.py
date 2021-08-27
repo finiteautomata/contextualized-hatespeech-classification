@@ -115,6 +115,7 @@ def train_finegrained_classifier(
         accumulation_steps=accumulation_steps, epochs=epochs,
         use_class_weight=use_class_weight,
         warmup_ratio=warmup_ratio,
+        output_dir=output_dir,
     )
 
     print("\n"*3, "Saving...")

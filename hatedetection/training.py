@@ -6,13 +6,8 @@ from transformers import (
     BertTokenizerFast, TrainingArguments, Trainer,
     AutoModelForSequenceClassification, AutoTokenizer
 )
-import os
-import fire
-import tempfile
 import tempfile
 import torch
-import sys
-import random
 from transformers import (
     TrainingArguments, DataCollatorWithPadding, Trainer
 )
@@ -217,7 +212,7 @@ def train_hatespeech_classifier(
 
 def train_finegrained(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, context,
-    batch_size=32, eval_batch_size=32,
+    batch_size=32, eval_batch_size=32, output_dir=None,
     accumulation_steps=1, epochs=5, warmup_ratio=0.1,
     use_class_weight=False, use_dynamic_padding=True,
     ):
@@ -292,11 +287,11 @@ def train_finegrained(
 
     print("\n"*3, "Training...")
 
-
-    output_path = tempfile.mkdtemp()
+    if not output_dir:
+        output_dir = tempfile.mkdtemp()
 
     training_args = TrainingArguments(
-        output_dir=output_path,
+        output_dir=output_dir,
         num_train_epochs=epochs,
         gradient_accumulation_steps=accumulation_steps,
         per_device_train_batch_size=batch_size,
@@ -326,5 +321,6 @@ def train_finegrained(
     """
     Evaluate
     """
+
 
     return trainer, test_dataset

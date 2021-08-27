@@ -13,6 +13,18 @@ python bin/train_finegrained.py --output_path models/test \
     --epochs 1
 ```
 
+
+### Run experiments
+
+```bash
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
+    --context 'none' \
+    --output_path evaluations/beto_fine_none_weighted.json \
+    --use_class_weight \
+    --epochs 5
+```
+
 ```bash
 for i in {1..15}
 do
