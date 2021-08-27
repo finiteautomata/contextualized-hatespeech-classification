@@ -9,7 +9,7 @@ import torch
 import sys
 import random
 from transformers import (
-    TrainingArguments, DataCollatorWithPadding, Trainer
+    TrainingArguments, DataCollatorWithPadding, Trainer, set_seed
 )
 from hatedetection import load_datasets, extended_hate_categories
 from hatedetection.training import (
@@ -64,8 +64,8 @@ def run_finegrained_experiments(
         print(f"{i+1} iteration", "\n"*3)
 
 
-        seed = 20212020 - i
-        random.seed(seed)
+        seed = 20212020 + 3*i
+        set_seed(seed)
         output_dir = tempfile.TemporaryDirectory().name
         model, tokenizer = load_model_and_tokenizer(
             model_name, num_labels=len(extended_hate_categories), device=device,

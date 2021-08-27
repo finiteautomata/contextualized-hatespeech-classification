@@ -10,7 +10,7 @@ python bin/train_finegrained.py --output_path models/test \
     --batch_size 32 --eval_batch_size 32 --accumulation_steps 1 \
     --context 'none' \
     --use_class_weight \
-    --epochs 1
+    --epochs 10
 ```
 
 
@@ -23,6 +23,13 @@ python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
     --output_path evaluations/beto_fine_none_weighted.json \
     --use_class_weight \
     --epochs 5
+
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
+    --context 'title' \
+    --output_path evaluations/beto_fine_title_weighted.json \
+    --use_class_weight \
+    --epochs 10
 ```
 
 ```bash

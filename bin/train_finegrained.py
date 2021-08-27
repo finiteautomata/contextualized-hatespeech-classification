@@ -107,7 +107,6 @@ def train_finegrained_classifier(
     print(f"Dev examples   : {len(dev_dataset):<5}   (Hateful {sum(dev_dataset['HATEFUL'])})")
     print(f"Test examples  : {len(test_dataset):<5}  (Hateful {sum(test_dataset['HATEFUL'])})")
 
-    random.seed(random_seed)
 
     trainer, test_dataset = train_finegrained(
         model, tokenizer, train_dataset=train_dataset, dev_dataset=dev_dataset, test_dataset=test_dataset,
