@@ -70,11 +70,6 @@ def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, p
         for df in [train_df, dev_df, test_df]:
             df["text"] = df["original_text"].parallel_apply(preprocess_tweet)
             df["title"] = df["title"].parallel_apply(preprocess_tweet)
-            if add_body:
-                """
-                TODO: Perhaps tweet preprocessing is not suitable for the body
-                """
-                df["body"] = df["body"].parallel_apply(preprocess_tweet)
 
     features = Features({
         'id': Value('uint64'),
