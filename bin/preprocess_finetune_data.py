@@ -6,7 +6,7 @@ import os
 from hatedetection.preprocessing import preprocess
 from multiprocessing import Pool
 from tqdm.auto import tqdm
-from tqdm.contrib.concurrent import process_map
+from sklearn.model_selection import train_test_split
 
 logging.basicConfig()
 
@@ -99,10 +99,33 @@ def preprocess_finetune_data(data_path:str, output_path:str, num_workers:int=10,
         pbar.update()
 
     logger.info("Saving...")
-    with open(output_path, "w+") as f:
-        json.dump(preprocessed_articles, f)
 
-    logger.info(f"Saved {len(preprocessed_articles)} articles to {output_path}")
+    comments = []
+
+    for art in preprocessed_articles:
+        for comment in art["comments"]:
+            comments.append(
+                {
+                    "article_text": art["text"],
+                    "article_title": art["title"],
+                    "body": art["body"],
+                    "text": comment["text"]
+                }
+            )
+
+    train_comments, test_comments = train_test_split(comments, random_state=2021, test_size=0.1)
+
+    train_path = os.path.join(output_path, "train.json")
+    with open(train_path, "w+") as f:
+        json.dump(train_comments, f)
+        logger.info(f"Saved {len(train_comments)} comments to {train_path}")
+
+    test_path = os.path.join(output_path, "test.json")
+
+    with open(test_path, "w+") as f:
+        json.dump(test_comments, f)
+        logger.info(f"Saved {len(test_comments)} comments to {test_path}")
+
 
 
 

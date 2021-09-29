@@ -37,5 +37,5 @@ For more instructions, check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
 ## Finetuning
 1. First, preprocess data
 ```bash
-python bin/preprocess_finetune_data.py "/content/drive/Shareddrives/HateSpeech/data/hatespeech-data/" "/content/drive/MyDrive/data/finetune-news/finetune_data.json" --num_workers 10
+python bin/preprocess_finetune_data.py "/content/drive/Shareddrives/HateSpeech/data/hatespeech-data/" "/content/drive/MyDrive/data/finetune-news/finetune_data/" --num_workers 10
 ```
