@@ -1,0 +1,40 @@
+{
+    "context": "none",
+    "data_path": "/content/drive/MyDrive/data/finetune-news",
+
+    "pad_to_max_length": true,
+    "max_seq_length": 128,
+
+    "do_train": true,
+    "do_eval": true,
+    "seed": 424242,
+    "max_steps": 10000,
+    "eval_steps": 1000,
+    "save_steps": 500,
+
+    "logging_steps": 50,
+    "logging_strategy": "steps",
+    "logging_dir": "./logs/",
+    "evaluation_strategy": "steps",
+
+
+    "model_name_or_path": "dccuchile/bert-base-spanish-wwm-cased",
+    "tokenizer_name": "/content/drive/MyDrive/models/beto-cased-ft",
+    "output_dir": "/content/drive/MyDrive/models/news-comments/beto-finetuned-nocontext",
+
+
+    "weight_decay": 0.01,
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.98,
+    "adam_epsilon": 1e-6,
+    "learning_rate": 0.0005,
+    "max_grad_norm": 0,
+    "warmup_ratio": 0.06,
+
+    "resume_from_checkpoint": null,
+    "ignore_data_skip": true,
+
+    "per_device_train_batch_size": 32,
+    "per_device_eval_batch_size": 32,
+    "gradient_accumulation_steps": 8
+}
