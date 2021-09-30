@@ -36,7 +36,7 @@ user_mapping = {
     "laderechamedios": "laderechadiario",
 }
 
-def preprocess_finetune_data(data_path:str, output_path:str, num_workers:int=10, filter_media:bool=True, min_body_len:int=500):
+def preprocess_finetune_data(data_path:str, output_path:str, num_workers:int=10, filter_media:bool=True, min_body_len:int=500, num_chunks:int=100):
     """
     Preprocess data for finetuning BERT models
 
@@ -113,20 +113,19 @@ def preprocess_finetune_data(data_path:str, output_path:str, num_workers:int=10,
                 }
             )
 
-    train_comments, test_comments = train_test_split(comments, random_state=2021, test_size=0.1)
+    """
+    Save in chunks
 
-    train_path = os.path.join(output_path, "train.json")
-    with open(train_path, "w+") as f:
-        json.dump(train_comments, f)
-        logger.info(f"Saved {len(train_comments)} comments to {train_path}")
+    """
 
-    test_path = os.path.join(output_path, "test.json")
+    n = len(comments) // num_chunks
+    for i, chunk in enumerate(comments[i:i + n] for i in range(0, len(comments), n)):
+        file_path = os.path.join(output_path, f"{i+1:03}.json")
 
-    with open(test_path, "w+") as f:
-        json.dump(test_comments, f)
-        logger.info(f"Saved {len(test_comments)} comments to {test_path}")
-
-
+        with open(file_path, "w+") as f:
+            json.dump(
+                {"data":chunk}, f, indent=4)
+            logger.info(f"Saved {len(chunk)} comments to {file_path}")
 
 
 if __name__ == '__main__':
