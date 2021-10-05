@@ -22,7 +22,7 @@ def serialize(article, comment, add_body):
     """
     ret = comment.copy()
     ret["title"] = article["title"]
-
+    ret["article_text"] = article["tweet_text"]
     if add_body:
         ret["body"] = article["body"]
     return ret
@@ -69,12 +69,13 @@ def load_datasets(train_path=None, test_path=None, add_body=False, limit=None, p
 
         for df in [train_df, dev_df, test_df]:
             df["text"] = df["original_text"].parallel_apply(preprocess_tweet)
-            df["title"] = df["title"].parallel_apply(preprocess_tweet)
+            df["article_text"] = df["article_text"].parallel_apply(preprocess_tweet)
 
     features = Features({
         'id': Value('uint64'),
         'title': Value('string'),
         'text': Value('string'),
+        'article_text': Value('string'),
         'HATEFUL': ClassLabel(num_classes=2, names=["Not Hateful", "Hateful"])
     })
 

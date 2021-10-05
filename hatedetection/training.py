@@ -19,6 +19,7 @@ lengths = {
     'none': 128,
     'title-only': 128,
     'title': 256,
+    'text': 256,
     'title-hyphen': 256,
     'body': 512,
     'title+body': 512,
@@ -127,7 +128,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
         Type of allowed context. Options are ['none', 'title', 'title-only', 'body', 'title+body']
     """
 
-    valid_contexts = {'none', 'title', 'title-only', 'body', 'title-hyphen', 'title+body'}
+    valid_contexts = {'none', 'title', 'text', 'title-only', 'body', 'title-hyphen', 'title+body'}
 
     if context not in valid_contexts:
         raise ValueError(f"Invalid context. Must be one of {valid_contexts}")
@@ -151,10 +152,15 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
             batch['text'],
             batch['body']
         ]
-    elif context == "title+body":
+    elif context == 'text':
         tokenize_args = [
             batch['text'],
-            [title + " - "+ body for title, body in zip(batch['title'],batch['body'])],
+            batch['article_text']
+        ]
+    elif context == "text+body":
+        tokenize_args = [
+            batch['text'],
+            [title + " - "+ body for title, body in zip(batch['article_text'],batch['body'])],
         ]
     elif context == 'title-only':
         tokenize_args = [
