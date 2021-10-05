@@ -32,3 +32,18 @@ python bin/train_hate_classifier.py --context 'title+body' --output_path models/
 
 For more instructions, check [TRAIN_EVALUATE.md](TRAIN_EVALUATE.md)
 
+
+
+## Finetuning
+
+1. First, preprocess data
+
+```bash
+python bin/preprocess_finetune_data.py "/content/drive/Shareddrives/HateSpeech/data/hatespeech-data/" "/content/drive/MyDrive/data/finetune-news/finetune_data/" --num_workers 10
+```
+
+2. Run finetuning
+
+```bash
+python bin/xla_spawn.py --num_cores 8 bin/finetune_lm.py config/no_context_ft.json
+```
