@@ -1,9 +1,9 @@
 {
-    "context": "text",
+    "context": "body",
     "data_path": "/content/drive/MyDrive/data/finetune-news",
 
     "pad_to_max_length": true,
-    "max_seq_length": 256,
+    "max_seq_length": 512,
 
     "do_train": true,
     "do_eval": true,
@@ -20,7 +20,7 @@
 
     "model_name_or_path": "dccuchile/bert-base-spanish-wwm-cased",
     "tokenizer_name": "/content/drive/MyDrive/models/beto-cased-ft",
-    "output_dir": "/content/drive/MyDrive/models/news-comments/beto-finetuned-tweetcontext",
+    "output_dir": "/content/drive/MyDrive/models/news-comments/beto-finetuned-bodycontext",
 
 
     "weight_decay": 0.01,
@@ -32,9 +32,9 @@
     "warmup_ratio": 0.10,
 
     "resume_from_checkpoint": true,
-    "ignore_data_skip": false,
+    "ignore_data_skip": true,
 
-    "per_device_train_batch_size": 32,
-    "per_device_eval_batch_size": 32,
-    "gradient_accumulation_steps": 8
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 8,
+    "gradient_accumulation_steps": 32
 }

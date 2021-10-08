@@ -368,7 +368,11 @@ def main():
         elif context == "title":
             args = (examples["text"], examples["article_title"])
         elif context == "body":
-            args = (examples["text"], examples["body"])
+            zipped_text_body = zip(examples['article_text'], examples['body'])
+            args = (
+                examples["text"],
+                [title + " "+ body for title, body in zipped_text_body]
+            )
 
         return tokenizer(
             *args,
@@ -388,12 +392,12 @@ def main():
             tokenize_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
-            remove_columns=["text"],
+            remove_columns=["text", "article_text", "body", "article_title"],
             #load_from_cache_file=not data_args.overwrite_cache,
             desc="Running tokenizer on dataset line_by_line",
         )
 
-    train_dataset = tokenized_datasets["train"]
+    train_dataset = tokenized_datasets["train"].shuffle()
     eval_dataset = tokenized_datasets["test"]
 
     logger.info(tokenizer.decode(train_dataset[0]["input_ids"]))
