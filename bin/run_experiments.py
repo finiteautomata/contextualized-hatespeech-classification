@@ -19,7 +19,7 @@ from hatedetection.metrics import compute_extended_category_metrics
 
 
 
-def run_finegrained_experiments(
+def run_experiments(
     output_path, times, model_name, context,
     batch_size=32, output_dir=None,
     accumulation_steps=1, max_length=None, epochs=5, warmup_ratio=0.1,
@@ -113,5 +113,5 @@ def run_finegrained_experiments(
     print(f"Results saved to {output_path}")
 
 if __name__ == '__main__':
-    fire.Fire(run_finegrained_experiments)
+    fire.Fire(run_experiments)
 
