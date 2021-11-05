@@ -47,27 +47,38 @@ def run_experiments(
     print(f"Training hate speech fine grained classifier -- {output_path}")
 
 
-    results = {
-        "model_name": model_name,
-        "use_class_weight": use_class_weight,
-        "context": context,
-        "times": times,
-        "metrics": [],
-        "labels": [],
-        "predictions": [],
-    }
+    if not os.path.exists(output_path):
+        results = {
+            "model_name": model_name,
+            "use_class_weight": use_class_weight,
+            "context": context,
+            "times": times,
+            "metrics": [],
+            "labels": [],
+            "predictions": [],
+        }
+    else:
+        with open(output_path, "r") as f:
+            results = json.load(f)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    for i in range(times):
+    times_left = times - len(results["metrics"])
+
+    print(f"We have to run this for {times_left} times")
+
+    for i in range(times_left):
         print(("="*80+'\n')*3)
         print(f"{i+1} iteration", "\n"*3)
 
 
         set_seed(int(time.time()))
         output_dir = tempfile.TemporaryDirectory().name
+
+        num_labels = 2 if plain else len(extended_hate_categories)
+
         model, tokenizer = load_model_and_tokenizer(
-            model_name, num_labels=len(extended_hate_categories), device=device,
+            model_name, num_labels=num_labels, device=device,
             max_length=lengths[context],
         )
 
@@ -88,7 +99,7 @@ def run_experiments(
         if not plain:
             eval_training_args = TrainingArguments(
                 output_dir=".",
-                per_device_eval_batch_size=eval_batch_size,
+                per_device_eval_batch_size=batch_size,
             )
             eval_trainer = Trainer(
                 model=trainer.model,

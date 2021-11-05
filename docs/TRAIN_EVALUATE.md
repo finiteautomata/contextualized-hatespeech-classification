@@ -42,6 +42,33 @@ python bin/run_experiments.py --model_name $model_name --times 10 \
     --batch_size 16 --eval_batch_size 16 --accumulation_steps 2 \
     --use_class_weight \
     --epochs 10
+
+## Finetuned
+context="none"
+model_name="finiteautomata/betonews-nonecontext"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/betonews_plain_${context}.json" \
+    --plain \
+    --epochs 5
+
+context="text"
+model_name="finiteautomata/betonews-tweetcontext"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/betonews_plain_${context}.json" \
+    --plain \
+    --batch_size 16 --accumulation_steps 2\
+    --epochs 5
+
+context="text+body"
+model_name="finiteautomata/betonews-bodycontext"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context 'title+body' \
+    --output_path evaluations/beto_fine_titlebody.json \
+    --batch_size 8 --eval_batch_size 8 --accumulation_steps 4 \
+    --use_class_weight \
+    --epochs 10
 ```
 
 
