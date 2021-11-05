@@ -15,17 +15,35 @@ python bin/train_finegrained.py --output_path models/test \
 
 
 ### Run experiments
+#### Task A
 
 ```bash
 model_name="dccuchile/bert-base-spanish-wwm-cased"
-python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
+
+contexts=("none" "text" "text+body")
+for context in ${contexts[@]}; do
+  echo $context
+  python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/beto_plain_${context}.json" \
+    --plain \
+    --epochs 5
+done
+```
+
+
+#### Task B
+
+```bash
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/run_experiments.py --model_name $model_name --times 10 \
     --context 'none' \
     --output_path evaluations/beto_fine_none_weighted.json \
     --use_class_weight \
     --epochs 5
 
 model_name="dccuchile/bert-base-spanish-wwm-cased"
-python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
+python bin/run_experiments.py --model_name $model_name --times 10 \
     --context 'title' \
     --output_path evaluations/beto_fine_title_weighted.json \
     --use_class_weight \
@@ -33,7 +51,7 @@ python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
 
 
 model_name="dccuchile/bert-base-spanish-wwm-cased"
-python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
+python bin/run_experiments.py --model_name $model_name --times 10 \
     --context 'title+body' \
     --output_path evaluations/beto_fine_titlebody.json \
     --batch_size 16 --eval_batch_size 16 --accumulation_steps 2 \
@@ -41,46 +59,7 @@ python bin/run_finegrained_experiments.py --model_name $model_name --times 10 \
     --epochs 10
 ```
 
-```bash
-for i in {1..15}
-do
-    echo "models/bert-contextualized-hate-speech-es_${i}/"
-    output_dir="./results_contextualized/${i}"
-    echo $output_dir
-    CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context 'title' --output_path "models/bert-contextualized-hate-speech-es_${i}/" --epochs 10 --output_dir $output_dir
-    rm -Rf $output_dir
-done
 
-for i in {1..15}
-do
-    output_path="models/bert-hyphen-hate-speech-es_${i}/"
-    echo $output_path
-    results_dir="./results_hyphen/${i}"
-    echo $results_dir
-    context="title-hyphen"
-
-    python bin/train_hate_classifier.py --context $context --output_path $output_path --epochs 10 --output_dir $results_dir
-    rm -Rf $results_dir
-done
-
-
-for i in {1..15}
-do
-    model_path="models/bert-non-contextualized-hate-speech-es_${i}/"
-    output_dir="./results_non_contextualized/${i}"
-    echo $output_dir
-    CUDA_VISIBLE_DEVICES=1 python bin/train_hate_classifier.py --context 'none' --output_path $model_path --epochs 10 --output_dir $output_dir
-    rm -Rf $output_dir
-done
-
-for i in {1..15}
-do
-    model_path="models/bert-title-only-hate-speech-es_${i}/"
-    output_dir="./results-title-only/${i}"
-    echo $output_dir
-    python bin/train_hate_classifier.py --context 'title-only' --output_path $model_path --epochs 5 --output_dir $output_dir
-    rm -Rf $output_dir
-done
 
 ## Single
 

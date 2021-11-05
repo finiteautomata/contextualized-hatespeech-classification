@@ -23,6 +23,7 @@ lengths = {
     'title-hyphen': 256,
     'body': 512,
     'title+body': 512,
+    'text+body': 512,
 }
 
 
@@ -128,7 +129,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
         Type of allowed context. Options are ['none', 'title', 'title-only', 'body', 'title+body']
     """
 
-    valid_contexts = {'none', 'title', 'text', 'title-only', 'body', 'title-hyphen', 'title+body'}
+    valid_contexts = lengths.keys()
 
     if context not in valid_contexts:
         raise ValueError(f"Invalid context. Must be one of {valid_contexts}")
@@ -157,7 +158,7 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
             batch['text'],
             batch['article_text']
         ]
-    elif context == "text+body":
+    elif context == "text+body" or context == "title+body":
         tokenize_args = [
             batch['text'],
             [title + " - "+ body for title, body in zip(batch['article_text'],batch['body'])],
@@ -178,49 +179,13 @@ def tokenize(tokenizer, batch, context, padding='max_length', truncation='longes
     return tokenizer(*tokenize_args, **kwargs)
 
 
-def train_hatespeech_classifier(
-    model, train_dataset, dev_dataset,
-    batch_size, eval_batch_size, output_dir, epochs=10, warmup_proportion=0.1,
-    load_best_model_at_end=True, metric_for_best_model="f1", **kwargs):
-    """
-    Train hate speech classifier
-    """
 
-    total_steps = (epochs * len(train_dataset)) // batch_size
-    warmup_steps = int(warmup_proportion * total_steps)
-    training_args = TrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=eval_batch_size,
-        warmup_steps=warmup_steps,
-        evaluation_strategy="epoch",
-        do_eval=False,
-        weight_decay=0.01,
-        logging_dir='./logs',
-        load_best_model_at_end=load_best_model_at_end,
-        metric_for_best_model=metric_for_best_model,
-        **kwargs
-    )
-
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        compute_metrics=compute_hate_metrics,
-        train_dataset=train_dataset,
-        eval_dataset=dev_dataset,
-    )
-
-    trainer.train()
-
-    return trainer, dev_dataset
-
-
-def train_finegrained(
+def train_classifier(
     model, tokenizer, train_dataset, dev_dataset, test_dataset, context,
     batch_size=32, eval_batch_size=32, output_dir=None,
     accumulation_steps=1, epochs=5, warmup_ratio=0.1,
     use_class_weight=False, use_dynamic_padding=True,
+    plain=False
     ):
 
     """
@@ -240,12 +205,18 @@ def train_finegrained(
     trainer: transformers.Trainer
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    class_weight = None
 
-    labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
 
-    class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight else None
+    if not plain:
+        print("Training fine-grained classifier")
+        labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
 
-    print(f"Class weight: {class_weight}")
+        class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight  else None
+
+        print(f"Class weight: {class_weight}")
+    else:
+        print("Training plain classifier")
 
     print("")
     print("Loading model and tokenizer... ", end="")
@@ -262,7 +233,15 @@ def train_finegrained(
 
     def format_dataset(dataset):
         def get_category_labels(examples):
-            return {'labels': torch.Tensor([examples[cat] for cat in extended_hate_categories])}
+            if not plain:
+                return {
+                    'labels': torch.Tensor([
+                        examples[cat] for cat in extended_hate_categories
+                    ])}
+            else:
+                return {
+                    'labels': examples["HATEFUL"]
+                }
         dataset = dataset.map(get_category_labels)
 
         if use_dynamic_padding:
@@ -296,6 +275,8 @@ def train_finegrained(
     if not output_dir:
         output_dir = tempfile.mkdtemp()
 
+    metric_for_best_model = "f1" if plain else "mean_f1"
+
     training_args = TrainingArguments(
         output_dir=output_dir,
         num_train_epochs=epochs,
@@ -309,20 +290,27 @@ def train_finegrained(
         weight_decay=0.01,
         logging_dir='./logs',
         load_best_model_at_end=True,
-        metric_for_best_model="mean_f1",
+        metric_for_best_model=metric_for_best_model,
         group_by_length=True,
     )
 
 
-    trainer = MultiLabelTrainer(
-        model=model,
-        args=training_args,
-        class_weight=class_weight,
-        compute_metrics=lambda pred: compute_extended_category_metrics(dev_dataset, pred),
-        train_dataset=train_dataset,
-        eval_dataset=dev_dataset,
-        data_collator=data_collator,
-    )
+    trainer_args = {
+        "model": model,
+        "args": training_args,
+        "train_dataset": train_dataset,
+        "eval_dataset": dev_dataset,
+        "data_collator": data_collator,
+    }
+
+    if plain:
+        trainer_class = Trainer
+        trainer_args["compute_metrics"] = compute_hate_metrics
+    else:
+        trainer_class = MultiLabelTrainer
+        trainer_args["compute_metrics"] = lambda pred: compute_extended_category_metrics(dev_dataset, pred)
+
+    trainer = trainer_class(**trainer_args)
     trainer.train()
     """
     Evaluate
