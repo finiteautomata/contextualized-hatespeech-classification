@@ -4,6 +4,7 @@ Script to train hatespeech classifier
 import os
 import fire
 import json
+import time
 import tempfile
 import torch
 from transformers import (
@@ -63,8 +64,7 @@ def run_finegrained_experiments(
         print(f"{i+1} iteration", "\n"*3)
 
 
-        seed = 20212020 + 3*i
-        set_seed(seed)
+        set_seed(int(time.time()))
         output_dir = tempfile.TemporaryDirectory().name
         model, tokenizer = load_model_and_tokenizer(
             model_name, num_labels=len(extended_hate_categories), device=device,
