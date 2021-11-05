@@ -21,7 +21,7 @@ from hatedetection.metrics import compute_extended_category_metrics
 
 def run_finegrained_experiments(
     output_path, times, model_name, context,
-    batch_size=32, eval_batch_size=32, output_dir=None,
+    batch_size=32, output_dir=None,
     accumulation_steps=1, max_length=None, epochs=5, warmup_ratio=0.1,
     use_class_weight=False, use_dynamic_padding=True,
     plain=False,
@@ -77,7 +77,7 @@ def run_finegrained_experiments(
 
         trainer, test_dataset = train_classifier(
             model, tokenizer, train_dataset=train_dataset, dev_dataset=dev_dataset, test_dataset=test_dataset,
-            context=context, batch_size=batch_size, eval_batch_size=eval_batch_size,
+            context=context, batch_size=batch_size, eval_batch_size=batch_size,
             accumulation_steps=accumulation_steps, epochs=epochs,
             use_class_weight=use_class_weight,
             warmup_ratio=warmup_ratio, output_dir=output_dir,
