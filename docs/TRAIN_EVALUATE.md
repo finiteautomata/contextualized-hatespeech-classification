@@ -19,16 +19,29 @@ python bin/train_finegrained.py --output_path models/test \
 
 ```bash
 model_name="dccuchile/bert-base-spanish-wwm-cased"
-
-contexts=("none" "text" "text+body")
-for context in ${contexts[@]}; do
-  echo $context
-  python bin/run_experiments.py --model_name $model_name --times 10 \
+python bin/run_experiments.py --model_name $model_name --times 10 \
     --context $context \
     --output_path "evaluations/beto_plain_${context}.json" \
     --plain \
     --epochs 5
-done
+
+context="text"
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/beto_plain_${context}.json" \
+    --plain \
+    --batch_size 16 --accumulation_steps 2\
+    --epochs 5
+
+context="text+body"
+model_name="dccuchile/bert-base-spanish-wwm-cased"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context 'title+body' \
+    --output_path evaluations/beto_fine_titlebody.json \
+    --batch_size 16 --eval_batch_size 16 --accumulation_steps 2 \
+    --use_class_weight \
+    --epochs 10
 ```
 
 
