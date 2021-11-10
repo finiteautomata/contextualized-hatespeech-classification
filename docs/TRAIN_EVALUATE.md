@@ -64,10 +64,10 @@ python bin/run_experiments.py --model_name $model_name --times 10 \
 context="text+body"
 model_name="finiteautomata/betonews-bodycontext"
 python bin/run_experiments.py --model_name $model_name --times 10 \
-    --context 'title+body' \
-    --output_path evaluations/beto_fine_titlebody.json \
-    --batch_size 8 --eval_batch_size 8 --accumulation_steps 4 \
-    --use_class_weight \
+    --context $context \
+    --plain \
+    --output_path "evaluations/betonews_plain_${context}.json" \
+    --batch_size 8 --accumulation_steps 4 \
     --epochs 10
 ```
 
