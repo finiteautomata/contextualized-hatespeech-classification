@@ -38,9 +38,9 @@ context="text+body"
 model_name="dccuchile/bert-base-spanish-wwm-cased"
 python bin/run_experiments.py --model_name $model_name --times 10 \
     --context 'title+body' \
-    --output_path evaluations/beto_fine_titlebody.json \
-    --batch_size 16 --eval_batch_size 16 --accumulation_steps 2 \
-    --use_class_weight \
+    --output_path "evaluations/beto_plain_${context}.json" \
+    --batch_size 8 --accumulation_steps 4 \
+    --plain \
     --epochs 10
 
 ## Finetuned
