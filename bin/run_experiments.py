@@ -65,6 +65,8 @@ def run_experiments(
 
     times_left = times - len(results["metrics"])
 
+    max_length = max_length or lengths[context]
+
     print(f"We have to run this for {times_left} times")
 
     for i in range(times_left):
@@ -77,9 +79,11 @@ def run_experiments(
 
         num_labels = 2 if plain else len(extended_hate_categories)
 
+
+
         model, tokenizer = load_model_and_tokenizer(
             model_name, num_labels=num_labels, device=device,
-            max_length=lengths[context],
+            max_length=max_length,
         )
 
         add_body = True if "body" in context else False

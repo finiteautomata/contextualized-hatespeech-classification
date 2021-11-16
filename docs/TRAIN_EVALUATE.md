@@ -99,6 +99,47 @@ python bin/run_experiments.py --model_name $model_name --times 10 \
     --epochs 10
 ```
 
+### Robertuito
+
+```bash
+model_name="finiteautomata/robertuito-base-cased"
+context="text"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/robertuito_cased_fine_${context}.json" \
+    --max_length 128 \
+    --batch_size 32 \
+    --use_class_weight \
+    --epochs 10
+
+model_name="finiteautomata/robertuito-base-uncased"
+context="text"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context $context \
+    --output_path "evaluations/robertuito_uncased_fine_${context}.json" \
+    --max_length 128 \
+    --batch_size 32 \
+    --use_class_weight \
+    --epochs 10
+
+#
+#
+# Finetuned
+#
+#
+
+
+
+model_name="finiteautomata/robertuitonews-tweetcontext"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context 'text' \
+    --output_path "evaluations/robertuitonews_fine_${context}.json" \
+    --max_length 128 \
+    --batch_size 32 --eval_batch_size 32 --accumulation_steps 1 \
+    --use_class_weight \
+    --epochs 10
+```
+
 
 
 ## Single

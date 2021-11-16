@@ -207,17 +207,6 @@ def train_classifier(
     device = "cuda" if torch.cuda.is_available() else "cpu"
     class_weight = None
 
-
-    if not plain:
-        print("Training fine-grained classifier")
-        labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
-
-        class_weight = (1 / (2 * labels.mean(0))).to(device) if use_class_weight  else None
-
-        print(f"Class weight: {class_weight}")
-    else:
-        print("Training plain classifier")
-
     print("")
     print("Loading model and tokenizer... ", end="")
     print("Done")
@@ -303,11 +292,20 @@ def train_classifier(
         "data_collator": data_collator,
     }
 
+
+
     if plain:
+        print("Training plain classifier")
         trainer_class = Trainer
         trainer_args["compute_metrics"] = compute_hate_metrics
     else:
+        print("Training fine-grained classifier")
         trainer_class = MultiLabelTrainer
+        labels = torch.Tensor([train_dataset[c] for c in extended_hate_categories]).T
+
+        trainer_args["class_weight"] = (1 / (2 * labels.mean(0))).to(device) if use_class_weight  else None
+
+        print(f"Class weight: {trainer_args['class_weight']}")
         trainer_args["compute_metrics"] = lambda pred: compute_extended_category_metrics(dev_dataset, pred)
 
     trainer = trainer_class(**trainer_args)
