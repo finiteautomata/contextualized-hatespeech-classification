@@ -129,13 +129,22 @@ python bin/run_experiments.py --model_name $model_name --times 10 \
 #
 
 
-
 model_name="finiteautomata/robertuitonews-tweetcontext"
 python bin/run_experiments.py --model_name $model_name --times 10 \
     --context 'text' \
     --output_path "evaluations/robertuitonews_fine_${context}.json" \
     --max_length 128 \
-    --batch_size 32 --eval_batch_size 32 --accumulation_steps 1 \
+    --batch_size 32  \
+    --use_class_weight \
+    --epochs 10
+
+
+model_name="finiteautomata/robertuitonews-cased-tweetcontext"
+python bin/run_experiments.py --model_name $model_name --times 10 \
+    --context 'text' \
+    --output_path "evaluations/robertuitonews_cased_fine_${context}.json" \
+    --max_length 128 \
+    --batch_size 32  \
     --use_class_weight \
     --epochs 10
 ```

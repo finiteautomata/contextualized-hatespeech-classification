@@ -1,3 +1,4 @@
+from collections import Counter
 from torch.nn import BCEWithLogitsLoss
 from .metrics import compute_hate_metrics
 from .preprocessing import special_tokens
@@ -250,8 +251,8 @@ def train_classifier(
     print(tokenizer.decode(train_dataset[0]["input_ids"]))
 
     print(
-        sorted(
-            set(len(x) for x in train_dataset["input_ids"])
+        Counter(
+            (len(x) for x in train_dataset["input_ids"])
         )
     )
 
