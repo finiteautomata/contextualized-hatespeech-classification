@@ -1,5 +1,9 @@
 # Hatespeech Classification in News
 
+Code for "Assessing the impact of contextual information in hate speech detection", Pérez, J. M., Luque, F., Zayat, D., Kondratzky, M., Moro, A., Serrati, P., Zajac, J., Miguel, P., Gravano, A. & Cotik, V. (2022). 
+
+[Link to paper](https://arxiv.org/abs/2210.00465)
+
 1. Get the dataset and put it under `data/`
 
 2. Generate and preprocess dataset
