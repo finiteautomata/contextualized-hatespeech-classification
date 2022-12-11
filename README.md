@@ -1,8 +1,14 @@
-# Hatespeech Classification in News
+# Contextualized hate speech classification
 
 Code for "Assessing the impact of contextual information in hate speech detection", Pérez, J. M., Luque, F., Zayat, D., Kondratzky, M., Moro, A., Serrati, P., Zajac, J., Miguel, P., Gravano, A. & Cotik, V. (2022). 
 
 [Link to paper](https://arxiv.org/abs/2210.00465)
+
+## Dataset
+
+For the time being, the dataset is available upon request. Feel free to contact me at jmperez (at) dc.uba.ar
+
+## Instructions
 
 1. Get the dataset and put it under `data/`
 
