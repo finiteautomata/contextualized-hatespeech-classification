@@ -6,7 +6,9 @@ Code for "Assessing the impact of contextual information in hate speech detectio
 
 ## Dataset
 
-For the time being, the dataset is available upon request. Feel free to contact me at jmperez (at) dc.uba.ar
+The full dataset can be found at the [huggingface hub](https://huggingface.co/datasets/piubamas/contextualized_hate_speech/).
+
+You can check also [our demo of contextualized hate speech detection](https://huggingface.co/spaces/piubamas/discurso-de-odio)
 
 ## Instructions
 
