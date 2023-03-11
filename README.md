@@ -1,8 +1,16 @@
-# Hatespeech Classification in News
+# Contextualized hate speech classification
 
 Code for "Assessing the impact of contextual information in hate speech detection", Pérez, J. M., Luque, F., Zayat, D., Kondratzky, M., Moro, A., Serrati, P., Zajac, J., Miguel, P., Gravano, A. & Cotik, V. (2022). 
 
 [Link to paper](https://arxiv.org/abs/2210.00465)
+
+## Dataset
+
+The full dataset can be found at the [huggingface hub](https://huggingface.co/datasets/piubamas/contextualized_hate_speech/).
+
+You can check also [our demo of contextualized hate speech detection](https://huggingface.co/spaces/piubamas/discurso-de-odio)
+
+## Instructions
 
 1. Get the dataset and put it under `data/`
 
